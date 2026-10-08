@@ -1,0 +1,10 @@
+ablation,model,RMSE,MAE,R2
+A_all_features,XGBoost,139.541,105.634,-0.398
+A_all_features,LightGBM,140.547,104.502,-0.42
+A_all_features,TabPFN,124.749,89.902,-0.099
+B_no_route_stop,XGBoost,125.485,93.58,-0.112
+B_no_route_stop,LightGBM,122.999,90.967,-0.069
+B_no_route_stop,TabPFN,124.783,91.878,-0.098
+C_no_identity,XGBoost,126.776,94.951,-0.136
+C_no_identity,LightGBM,124.335,92.341,-0.092
+C_no_identity,TabPFN,124.18,91.587,-0.088

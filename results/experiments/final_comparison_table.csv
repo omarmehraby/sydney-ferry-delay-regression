@@ -1,0 +1,16 @@
+feature_set,model,mean_MAE,std_MAE,mean_RMSE,std_RMSE,mean_R2,std_R2
+all_features,LightGBM,70.345,0.3342,97.3299,0.6543,0.3553,0.0066
+all_features,TabPFN,71.971,0.5046,101.4503,0.6954,0.2996,0.006
+all_features,XGBoost,69.659,0.3434,96.5863,0.6251,0.3651,0.0055
+no_route_stop,LightGBM,78.1172,0.5489,105.8124,0.8225,0.2381,0.006
+no_route_stop,TabPFN,84.1305,0.4894,113.5705,0.8352,0.1222,0.0065
+no_route_stop,XGBoost,77.7479,0.3473,105.4348,0.4911,0.2435,0.0029
+no_identity,LightGBM,78.8363,0.454,106.7975,0.6736,0.2238,0.0041
+no_identity,TabPFN,84.9223,0.4996,114.4146,0.821,0.1091,0.0065
+no_identity,XGBoost,78.4894,0.3548,106.4861,0.5591,0.2283,0.0038
+no_route_stop_temporal,LightGBM,78.0082,0.4756,105.6532,0.6884,0.2404,0.0041
+no_route_stop_temporal,TabPFN,82.4854,0.6433,111.972,0.8696,0.1468,0.006
+no_route_stop_temporal,XGBoost,77.3222,0.3989,104.9391,0.5907,0.2506,0.0031
+no_identity_temporal,LightGBM,78.6327,0.3979,106.5507,0.6582,0.2274,0.0045
+no_identity_temporal,TabPFN,83.894,0.4847,113.3614,0.7519,0.1255,0.0064
+no_identity_temporal,XGBoost,77.9396,0.35,105.8184,0.5483,0.238,0.0034

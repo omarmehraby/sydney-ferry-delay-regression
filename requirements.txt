@@ -1,0 +1,9 @@
+# Versions the reported results were produced with (Python 3.12)
+pandas==2.3.2
+numpy==1.26.4
+scikit-learn==1.7.1
+xgboost==3.4.1
+lightgbm==4.7.0
+matplotlib==3.10.5
+tabpfn-client==0.4.1
+jupyter

@@ -1,0 +1,21 @@
+# Raw data — too large for GitHub (223 MB) and not ours to redistribute.
+# See data/README.md for how to obtain it.
+data/*
+!data/README.md
+
+# Secrets / local config
+.env
+.tabpfn/
+.claude/
+
+# Python / Jupyter
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
