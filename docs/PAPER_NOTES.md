@@ -100,6 +100,12 @@ redraw the curve or state this.
   14 copies), differing almost only in weather readings. De-duplication keeps
   the mean of the four numeric weather columns and the first copy's value for
   everything else. `arrival_delay` conflicts between copies in 30 events.
+- **`Week` is the day of the week** (0 = Monday to 6 = Sunday), not a week
+  number. The `no_date_features` follow-up therefore removed day of week along
+  with the three calendar-position features. Describe it that way.
+- **`Holidays` needs confirming.** It is 1 on 290 of 417 dates (about 70%), so
+  it may mark ordinary days rather than holidays. Do not call it a holiday flag
+  in the paper until the data provider confirms.
 - `Precip.` is constant, `Hour` duplicates `start_time`, and `Ridership` is a
   monthly per-route total that would not be known at prediction time. None is
   used as a feature.

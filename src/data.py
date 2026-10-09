@@ -31,7 +31,8 @@ FEATURE_SETS = {
         "missing": list(MISSING_FLAGS),
     },
 }
-# Feature set A without the calendar-position features, for the time-split follow-up.
+# Feature set A without four date-derived features, for the time-split follow-up.
+# Note: `Week` is the day of the week (0 = Monday), not a week number.
 DATE_FEATURES = ["start_date_ordinal", "day_of_year", "month", "Week"]
 FEATURE_SETS["no_date_features"] = {
     "categorical": list(CATEGORICAL),

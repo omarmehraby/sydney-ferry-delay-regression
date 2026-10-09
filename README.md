@@ -37,7 +37,8 @@ The full write-up, with the ablation study, temporal-feature experiment,
 │   ├── setup_tabpfn.ipynb         One-time TabPFN API login
 │   ├── Ferry_Delay_Regression.ipynb   Main pipeline
 │   └── Experiments.ipynb          Experiment sandbox
-├── src/                           Scripted experiments (baselines, time split)
+├── src/                           Scripted experiments, tables and figures
+├── paper/                         Conference paper (Springer LNCS); see paper/README.md
 ├── data/
 │   └── README.md                  How to obtain the dataset (not in the repo)
 ├── results/
