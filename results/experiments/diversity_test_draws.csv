@@ -1,0 +1,7 @@
+experiment_name,random_seed,rows,distinct_trips,distinct_dates
+diversity_whole_trips_10k,0,10000,1562,415
+diversity_random_from_100k_10k,0,10000,5901,416
+diversity_whole_trips_10k,1,10000,1547,409
+diversity_random_from_100k_10k,1,10000,5973,416
+diversity_whole_trips_10k,2,10000,1480,415
+diversity_random_from_100k_10k,2,10000,5893,416

@@ -31,11 +31,13 @@ The full write-up, with the ablation study, temporal-feature experiment,
 ├── README.md
 ├── requirements.txt
 ├── docs/
-│   └── PROJECT_REPORT.md          Full project report (read this first)
+│   ├── PROJECT_REPORT.md          Full project report (read this first)
+│   └── PAPER_NOTES.md             Points and decisions to carry into the paper
 ├── notebooks/
 │   ├── setup_tabpfn.ipynb         One-time TabPFN API login
 │   ├── Ferry_Delay_Regression.ipynb   Main pipeline
 │   └── Experiments.ipynb          Experiment sandbox
+├── src/                           Scripted experiments (baselines, time split)
 ├── data/
 │   └── README.md                  How to obtain the dataset (not in the repo)
 ├── results/
@@ -73,6 +75,11 @@ The full write-up, with the ablation study, temporal-feature experiment,
 4. **Run the notebooks** from the `notebooks/` folder, top to bottom. Paths are
    relative to that folder, so open them there rather than changing the working
    directory.
+
+5. **Run the scripted experiments** from the repository root, e.g.
+   `python src/run_stage2.py`. They append to
+   `results/experiments/experiment_results.csv` and skip anything already
+   logged, so they are safe to re-run.
 
 ## Things to know before you rely on the numbers
 
