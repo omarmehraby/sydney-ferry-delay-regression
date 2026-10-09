@@ -47,11 +47,14 @@ on later dates, while TabPFN, restricted to 10{,}000 training rows, stays near
 reliably better than predicting a mean delay. Second, TabPFN becomes useful
 on a new route from about 100 observed events (mean $R^2$
 \fs{pooled}{TabPFN}{100}); the boosted models need about 500 and remain behind
-up to 5{,}000. Third, consistent with earlier small-data results for TabPFN,
-it is ahead of both boosted models when all are given the same 10{,}000 rows.
-On later dates it is at least as good as boosted models trained on
-\TimeRowRatio{} times more rows, and ahead of them when given the same rows.
-This data efficiency is what makes it suited to new routes.
+up to 5{,}000. Third, at default settings and on this dataset, TabPFN is
+ahead of both boosted models whenever all three are given the same training
+rows: on later dates its $R^2$ is \rowresm{time10k}{TabPFN},
+\rowresm{time50k}{TabPFN} and \rowresm{timeall}{TabPFN} with 10{,}000,
+50{,}000 and all rows, against at most \rowresm{timeall}{LightGBM} for the
+boosted models, at the cost of minutes rather than a fraction of a second
+per prediction batch. Its advantage at 10{,}000 rows is consistent with
+earlier small-data results and is what makes it suited to new routes.
 
 \keywords{Delay prediction \and Public transport \and Tabular foundation
 models \and Gradient boosting \and Cold start \and Evaluation protocol}
@@ -91,12 +94,14 @@ than predicting a mean delay.
 new, we measure accuracy against the number $k$ of events observed on it.
 TabPFN is better than the route's own mean delay from about 100 events; the
 boosted models need about 500 and stay behind TabPFN up to 5{,}000.
-\item \textbf{A data-efficiency comparison.} Given the same 10{,}000 training
-rows, TabPFN is ahead of both boosted models. This is consistent with the
-small-data results reported for TabPFN~\cite{hollmann2025tabpfn}, not a new
-finding. What we add is that on later dates TabPFN with 10{,}000 rows is at
-least as good as the boosted models with \TimeRowRatio{} times more, and
-ahead of them when given all rows.
+\item \textbf{A data-efficiency comparison.} At default settings and on this
+dataset, TabPFN is ahead of both boosted models at 10{,}000, at 50{,}000 and
+at all training rows on the time split. Its lead at 10{,}000 rows is
+consistent with the small-data results reported for
+TabPFN~\cite{hollmann2025tabpfn}, not a new finding. What we add is that with
+10{,}000 rows it is at least as good as the boosted models with
+\TimeRowRatio{} times more, that the lead persists with all rows, and what
+it costs in prediction time.
 \end{enumerate}
 Taken together, TabPFN's data efficiency is what makes it suited to routes
 with little history. All results hold for default settings; no model was
@@ -127,11 +132,10 @@ was introduced for datasets of up to about 10{,}000 samples, and the version
 we use~\cite{jaeger2026tabpfn35} accepts larger ones.
 
 \paragraph{Evaluation.}
-Leakage is a known cause of optimistic results~\cite{kaufman2012leakage} and
-of irreproducible findings across fields~\cite{kapoor2023leakage}. For data
-with temporal, spatial or hierarchical structure, random cross-validation
-underestimates prediction error, and splits that respect the structure are
-recommended~\cite{roberts2017crossvalidation}. Distribution shift in tabular
+Leakage is a known cause of optimistic and irreproducible
+results~\cite{kaufman2012leakage,kapoor2023leakage}. For data with temporal,
+spatial or hierarchical structure, splits that respect the structure are
+recommended~\cite{roberts2017crossvalidation}; distribution shift in tabular
 data has been benchmarked by TableShift~\cite{gardner2023tableshift}.
 
 % ---------------------------------------------------------------------------
@@ -187,8 +191,13 @@ accepted up to 1{,}000{,}000 training rows; it keeps the number of rows sent
 to the service small, and it is the dataset size for which TabPFN was
 introduced~\cite{hollmann2025tabpfn}. XGBoost and LightGBM use every training
 row. To separate the model from the amount of data, we also train them on
-exactly the rows TabPFN receives (the \emph{equal-data} comparison), and on
-the time split we also run TabPFN on 50{,}000 rows and on all rows.
+exactly the rows TabPFN receives (the \emph{equal-data} comparison). In
+addition we run all three models on the same random 50{,}000-row samples of
+the time split (\rowruns{time50k}{TabPFN} samples) and run TabPFN on all
+training rows: once on the time split, and on \rowruns{tripall}{TabPFN}
+seeds of the trip-grouped split, there scored on a fixed sample of
+\FixedTestCap{} test events together with the other models. The few-shot
+experiments keep the 10{,}000-row restriction.
 
 \paragraph{Baselines.}
 Four baselines use the training rows only: the global mean delay; the mean
@@ -270,28 +279,59 @@ below zero (\res{route}{GlobalMean}). The boosted models are far below zero
 \resmax{route}{TabPFN} over the five choices of held-out routes: it is the
 best model here, but not distinguishable from predicting a mean delay.
 
-\paragraph{On equal data TabPFN is ahead of both boosted models.}
-On the trip-grouped split the boosted models, with about \TripRowRatio{} times
-more rows, are ahead of TabPFN. Given exactly TabPFN's 10{,}000 rows they fall
-behind it: \res{trip}{XGBoost10k} and \res{trip}{LightGBM10k} against
-\res{trip}{TabPFN}. This agrees with the results reported for TabPFN on small
-datasets~\cite{hollmann2025tabpfn}; we do not present it as new. The time
-split gives the same order on equal data (\res{time}{XGBoost10k} and
-\res{time}{LightGBM10k} against \res{time}{TabPFN}).
+\subsection{Effect of the Number of Training Rows}
 
-\paragraph{On later dates more data does not put the boosted models ahead.}
-On the time split TabPFN with 10{,}000 rows (\resmin{time}{TabPFN} to
-\resmax{time}{TabPFN} over \TimeTabRuns{} samples) is at least as good as
-XGBoost (\res{time}{XGBoost}) and LightGBM (\res{time}{LightGBM}) trained on
-\TimeRowRatio{} times more rows. Given more rows TabPFN improves further, to
-\res{time}{TabPFN50k} with 50{,}000 rows and \res{time}{TabPFNall} with all
-rows, and is then ahead of the boosted models on the same rows
-(\res{time}{XGBoost50k} and \res{time}{LightGBM50k} at 50{,}000). These
-larger runs, and the boosted models on all rows, were each run once. We have
-not established why the boosted models lose more than TabPFN on later dates.
-Removing the four date-derived features changed the $R^2$ of XGBoost,
-LightGBM and Ridge by at most \NoDateMaxChange{}, so these features are not
-the explanation.
+\begin{table}[t]
+\caption{$R^2$ by number of training rows; in each row the three models use
+the same training rows and the same \FixedTestCap{} test events. Mean $\pm$
+standard deviation over random samples or seeds; a single value is a single
+run.}
+\label{tab:rows}
+\centering
+\small
+\input{generated/tab_rows}
+\end{table}
+
+\paragraph{On the same rows TabPFN is ahead at every size.}
+Table~\ref{tab:rows} compares the models on identical training rows. At
+default settings and on this dataset, TabPFN is ahead of both boosted models
+on the time split at 10{,}000 rows (\rowres{time10k}{TabPFN} against
+\rowres{time10k}{XGBoost} and \rowres{time10k}{LightGBM}), at 50{,}000
+(\rowres{time50k}{TabPFN} against \rowres{time50k}{XGBoost} and
+\rowres{time50k}{LightGBM}) and with all rows (\rowres{time10k}{TabPFN}
+rising to \rowres{timeall}{TabPFN}, against \rowres{timeall}{XGBoost} and
+\rowres{timeall}{LightGBM}). The all-rows figures on the time split are
+single runs. The lead at 10{,}000 rows agrees with the results reported for
+TabPFN on small datasets~\cite{hollmann2025tabpfn}; we do not present it as
+new. With 10{,}000 rows TabPFN is already at least as good as the boosted
+models with all rows, \TimeRowRatio{} times more.
+
+\paragraph{The trip-grouped split shows the same order and a larger gap.}
+On the trip-grouped split TabPFN leads at 10{,}000 rows
+(\rowres{trip10k}{TabPFN} against \rowres{trip10k}{XGBoost} and
+\rowres{trip10k}{LightGBM}) and, on \rowruns{tripall}{TabPFN} seeds, with
+all rows (\rowres{tripall}{TabPFN} against \rowres{tripall}{XGBoost} and
+\rowres{tripall}{LightGBM}). In Table~\ref{tab:splits} the boosted models are
+ahead of TabPFN on this split only because TabPFN is restricted to 10{,}000
+rows there. With all rows TabPFN, too, scores lower on the time split than on
+the trip-grouped split, so the evaluation ladder applies to it as well once
+it sees the full data.
+
+\paragraph{The cost is prediction time.}
+With all training rows, TabPFN took \rowpred{timeall}{TabPFN}~s to predict
+the \FixedTestCap{} test events of the time split through the hosted service
+(about six minutes) and \rowfit{timeall}{TabPFN}~s to fit, against
+\rowpred{timeall}{XGBoost}~s and \rowpred{timeall}{LightGBM}~s to predict and
+\rowfit{timeall}{XGBoost}~s and \rowfit{timeall}{LightGBM}~s to fit for
+XGBoost and LightGBM on a laptop. With 10{,}000 rows TabPFN predicted the
+same events in \rowpred{time10k}{TabPFN}~s.
+
+\paragraph{Open points.}
+These comparisons are for default settings: tuned boosted models and CatBoost
+were not tested. We have not established why the boosted models lose more
+than TabPFN on later dates at 10{,}000 rows; removing the four date-derived
+features changed their $R^2$ on the time split by at most
+\NoDateMaxChange{}, so those features are not the explanation.
 
 \subsection{Routes with Little or No History}
 
@@ -320,10 +360,8 @@ Table~\ref{tab:fewshot}). TabPFN (\fs{pooled}{TabPFN}{0}), the stop-mean
 baseline (\fs{pooled}{RouteStopMean}{0}) and the mean delay of the other
 routes (\fs{pooled}{GlobalMean}{0}) are close together; XGBoost
 (\fs{pooled}{XGBoost}{0}) and LightGBM (\fs{pooled}{LightGBM}{0}) are much
-worse. Routes differ widely: TabPFN's $R^2$ ranges from
-\fsmin{pooled}{TabPFN}{0} to \fsmax{pooled}{TabPFN}{0}, and it is ahead of
-both boosted models on \fswins{pooled}{0} of the nine routes (not on
-\fslosers{pooled}{0}).
+worse. TabPFN is ahead of both boosted models on \fswins{pooled}{0} of the
+nine routes (not on \fslosers{pooled}{0}).
 
 \paragraph{TabPFN is useful from about 100 events.}
 With 100 events pooled with the other routes, TabPFN reaches a mean $R^2$ of
@@ -344,23 +382,19 @@ about what TabPFN reaches with 500 to 1{,}000 events. Pooled, TabPFN is ahead
 of both boosted models on \fswins{pooled}{100} of nine routes at $k=100$ and
 $k=500$ (the exception is \fslosers{pooled}{100}) and on all nine at
 $k \geq 1000$; target-only, on all nine at every $k$. Pooling helps TabPFN
-when $k$ is small (\fs{targetonly}{TabPFN}{100} target-only against
-\fs{pooled}{TabPFN}{100} pooled at $k=100$) and no longer matters at
-$k=5000$. For the boosted models, more data from other routes is not better:
-on TabPFN's 10{,}000 rows they reach \fs{pooled10k}{XGBoost}{5000} and
-\fs{pooled10k}{LightGBM}{5000} at $k=5000$, above their results with all
-other-route events and still below TabPFN.
+when $k$ is small (\fs{targetonly}{TabPFN}{100} target-only at $k=100$) and
+no longer matters at $k=5000$. On TabPFN's 10{,}000 rows the boosted models
+reach \fs{pooled10k}{XGBoost}{5000} and \fs{pooled10k}{LightGBM}{5000} at
+$k=5000$, above their results with all other-route events and still below
+TabPFN.
 
 \paragraph{The pattern holds when time is respected.}
-In the time-respecting variant the order of the models is the same. With 100
-pooled events TabPFN reaches \fst{pooled}{TabPFN}{100} while XGBoost and
-LightGBM are below zero (\fst{pooled}{XGBoost}{100} and
+In the time-respecting variant the order of the models is the same, at a
+lower level. With 100 pooled events TabPFN reaches \fst{pooled}{TabPFN}{100}
+while XGBoost and LightGBM are below zero (\fst{pooled}{XGBoost}{100} and
 \fst{pooled}{LightGBM}{100}); at $k=5000$ TabPFN reaches
 \fst{pooled}{TabPFN}{5000} against \fst{pooled}{XGBoost}{5000} and
-\fst{pooled}{LightGBM}{5000}. All three are lower than in the main
-experiment. Pooled, TabPFN is ahead of both boosted models on
-\fstwins{pooled}{0} of nine routes at $k=0$, \fstwins{pooled}{100} at
-$k=100$, \fstwins{pooled}{500} at $k=500$ and all nine beyond.
+\fst{pooled}{LightGBM}{5000}.
 
 % ---------------------------------------------------------------------------
 \section{Limitations}
@@ -373,13 +407,14 @@ observed readings; a deployed model would have to use forecasts. The results
 rest on nine routes of one operator, which differ strongly in size.
 
 \paragraph{Method.}
-No model was tuned, so the comparison holds for default settings; boosted
-models tuned for small training sets were not tested. The time split uses a
-single cutoff, and on it the boosted models on all rows and TabPFN on more
-than 10{,}000 rows were each run once. Elsewhere TabPFN saw a 10{,}000-row
-sample, and we do not know how it performs with more rows on the other
-splits. TabPFN was used through a hosted service whose default model can
-change; our results are for the version served on the date given.
+No model was tuned, so every comparison holds for default settings and for
+this dataset; tuned boosted models and CatBoost were not tested. The time
+split uses a single cutoff, and on it the all-rows results are single runs.
+The few-shot, unseen-route and random-split results keep TabPFN at 10{,}000
+rows, so we do not know how it performs there with more. TabPFN was used
+through a hosted service whose default model can change; our results are for
+the version served on the date given, and its prediction times include the
+network.
 
 % ---------------------------------------------------------------------------
 \section{Conclusion}
@@ -389,13 +424,14 @@ accuracy of the boosted models falls with each stricter evaluation split,
 and on routes absent from training no model is reliably better than
 predicting a mean delay. With about 100 observed events TabPFN becomes
 useful on a new route; the boosted models need about 500 and remain behind
-up to 5{,}000. Given the same training rows TabPFN is ahead of both boosted
-models, as earlier small-data results lead one to expect, and on later dates
-it is at least as good with \TimeRowRatio{} times fewer rows. For an
-operator, a small number of observed services on a new route is enough to
-start predicting its delays, provided the model is data-efficient. Tuned
-boosted models, forecast weather and other networks are the natural next
-steps.
+up to 5{,}000. At default settings and on this dataset, TabPFN is ahead of
+both boosted models on the same training rows at 10{,}000, 50{,}000 and all
+rows; the lead at 10{,}000 is what earlier small-data results lead one to
+expect, and it comes at the cost of much slower prediction with all rows.
+For an operator, a small number of observed services on a new route is
+enough to start predicting its delays, provided the model is data-efficient.
+Tuned boosted models, CatBoost, forecast weather and other networks are the
+natural next steps.
 
 \begin{credits}
 % ANONYMOUS: acknowledgements removed for review. Restore for the final version:

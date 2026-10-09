@@ -88,7 +88,7 @@ def numbers(log, few):
     macros["TimeRowRatio"] = f"{float(facts['time_train_rows']) / 10000:.0f}"
     macros["TripRowRatio"] = f"{0.8 * float(facts['events']) / 10000:.0f}"
     text = "".join(f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items())
-    write("numbers.tex", text + result_macros(log))
+    write("numbers.tex", text + result_macros(log) + rows_macros(log))
 
 
 def cond_key(condition):
@@ -232,10 +232,9 @@ def split_cells(log, metric):
 def splits_table(log, metric, name, digits):
     cells = split_cells(log, metric)
     cols = ["random", "trip", "route", "time"]
+    # TabPFN with 50,000 and all rows is in the training-rows table (tab_rows.tex)
     order = [(m, MODEL_LABEL[m]) for m in BASELINES] + \
-            [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"), ("TabPFNall", "TabPFN, all rows"),
-             ("XGBoost50k", "XGBoost, 50{,}000 rows"), ("LightGBM50k", "LightGBM, 50{,}000 rows"),
-             ("TabPFN50k", "TabPFN, 50{,}000 rows"),
+            [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"),
              ("XGBoost10k", "XGBoost, 10{,}000 rows"), ("LightGBM10k", "LightGBM, 10{,}000 rows"),
              ("TabPFN", "TabPFN, 10{,}000 rows")]
     order = [(k, label) for k, label in order if any(cells.get((k, c)) for c in cols)]
@@ -248,6 +247,68 @@ def splits_table(log, metric, name, digits):
           "\\begin{tabular}{lrrrr}\n\\hline\n"
           "Model & Random & Trip-grouped & Unseen routes & Time \\\\\n\\hline\n"
           + "".join(lines) + "\\hline\n\\end{tabular}\n")
+
+
+# ---------------------------------------------------------------- training rows
+ROW_SETTINGS = [("time10k", "Time", "10{,}000"), ("time50k", "Time", "50{,}000"), ("timeall", "Time", "all"),
+                ("trip10k", "Trip-grouped", "10{,}000"), ("tripall", "Trip-grouped", "all")]
+
+
+def rows_frames(log):
+    """{(setting, model): rows of the log} for the data-efficiency table."""
+    A = log[log.feature_set == "all_features"]
+    pick = lambda exp, split, model: A[(A.experiment_name == exp) & (A.split_type == split) & (A.model == model)]
+    fixed = "trip_grouped_fixed20k"
+    frames = {
+        ("time10k", "TabPFN"): pick("time_split", "time", "TabPFN"),
+        ("time50k", "TabPFN"): pick("time_split_tabpfn_50k", "time", "TabPFN"),
+        ("timeall", "TabPFN"): pick("time_split_tabpfn_all", "time", "TabPFN"),
+        ("trip10k", "TabPFN"): pick("trip_fixed20k", fixed, "TabPFN"),
+        ("tripall", "TabPFN"): pick("trip_fixed20k_tabpfn_all", fixed, "TabPFN"),
+    }
+    for m in ["XGBoost", "LightGBM"]:
+        frames[("time10k", m)] = pick("equal_data_10k", "time", m)
+        frames[("time50k", m)] = pick("equal_data_50k", "time", m)
+        frames[("timeall", m)] = pick("time_split", "time", m)
+        frames[("trip10k", m)] = pick("trip_fixed20k_equal10k", fixed, m)
+        frames[("tripall", m)] = pick("trip_fixed20k", fixed, m)
+    return frames
+
+
+def rows_table(log):
+    frames = rows_frames(log)
+    body, last = "", None
+    for key, split, n_rows in ROW_SETTINGS:
+        if all(frames[(key, m)].empty for m in MODELS):
+            continue
+        if last and split != last:
+            body += "\\hline\n"
+        last = split
+        body += f"{split} & {n_rows} & " + " & ".join(
+            mean_std(frames[(key, m)]["R2"]) for m in ["TabPFN", "XGBoost", "LightGBM"]) + " \\\\\n"
+    write("tab_rows.tex",
+          "\\begin{tabular}{llrrr}\n\\hline\n"
+          "Split & Training rows & TabPFN & XGBoost & LightGBM \\\\\n\\hline\n"
+          + body + "\\hline\n\\end{tabular}\n")
+
+
+def rows_macros(log):
+    """\\rowres{setting}{model}: mean (+/- std); \\rowruns{setting}{model}: number of runs;
+    \\rowfit, \\rowpred: mean training and prediction time in seconds.
+    Settings: time10k, time50k, timeall, trip10k, tripall."""
+    out = "% --- results by number of training rows: \\rowres{setting}{model} etc.\n"
+    for name in ["rowres", "rowresm", "rowruns", "rowfit", "rowpred"]:
+        out += accessor(name, name, 2)
+    for (key, model), f in rows_frames(log).items():
+        if f.empty:
+            continue
+        k = f"{key}@{model}"
+        out += keyed("rowres", k, mean_std(f["R2"])) + keyed("rowresm", k, num(f["R2"].mean()))
+        out += keyed("rowruns", k, len(f))
+        fit, pred = f["training_time"].mean(), f["prediction_time"].mean()
+        out += keyed("rowfit", k, f"{fit:.0f}" if fit >= 10 else f"{fit:.1f}")
+        out += keyed("rowpred", k, f"{pred:.0f}" if pred >= 10 else f"{pred:.1f}")
+    return out
 
 
 # ---------------------------------------------------------------- few-shot
@@ -301,6 +362,7 @@ def main():
     routes_table()
     splits_table(log, "R2", "tab_splits.tex", 3)
     splits_table(log, "RMSE", "tab_splits_rmse.tex", 1)
+    rows_table(log)
     fewshot_tables()
 
 

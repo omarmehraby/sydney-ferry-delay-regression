@@ -158,10 +158,10 @@
 \expandafter\def\csname resm@time@XGBoost10k\endcsname{0.171}
 \expandafter\def\csname resmin@time@XGBoost10k\endcsname{0.159}
 \expandafter\def\csname resmax@time@XGBoost10k\endcsname{0.190}
-\expandafter\def\csname res@time@XGBoost50k\endcsname{0.278}
-\expandafter\def\csname resm@time@XGBoost50k\endcsname{0.278}
+\expandafter\def\csname res@time@XGBoost50k\endcsname{0.288 $\pm$ 0.013}
+\expandafter\def\csname resm@time@XGBoost50k\endcsname{0.288}
 \expandafter\def\csname resmin@time@XGBoost50k\endcsname{0.278}
-\expandafter\def\csname resmax@time@XGBoost50k\endcsname{0.278}
+\expandafter\def\csname resmax@time@XGBoost50k\endcsname{0.303}
 \expandafter\def\csname res@trip@LightGBM10k\endcsname{0.240 $\pm$ 0.008}
 \expandafter\def\csname resm@trip@LightGBM10k\endcsname{0.240}
 \expandafter\def\csname resmin@trip@LightGBM10k\endcsname{0.233}
@@ -170,14 +170,14 @@
 \expandafter\def\csname resm@time@LightGBM10k\endcsname{0.211}
 \expandafter\def\csname resmin@time@LightGBM10k\endcsname{0.189}
 \expandafter\def\csname resmax@time@LightGBM10k\endcsname{0.239}
-\expandafter\def\csname res@time@LightGBM50k\endcsname{0.299}
-\expandafter\def\csname resm@time@LightGBM50k\endcsname{0.299}
-\expandafter\def\csname resmin@time@LightGBM50k\endcsname{0.299}
-\expandafter\def\csname resmax@time@LightGBM50k\endcsname{0.299}
-\expandafter\def\csname res@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname res@time@LightGBM50k\endcsname{0.300 $\pm$ 0.004}
+\expandafter\def\csname resm@time@LightGBM50k\endcsname{0.300}
+\expandafter\def\csname resmin@time@LightGBM50k\endcsname{0.297}
+\expandafter\def\csname resmax@time@LightGBM50k\endcsname{0.304}
+\expandafter\def\csname res@time@TabPFN50k\endcsname{0.368 $\pm$ 0.001}
 \expandafter\def\csname resm@time@TabPFN50k\endcsname{0.368}
 \expandafter\def\csname resmin@time@TabPFN50k\endcsname{0.368}
-\expandafter\def\csname resmax@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname resmax@time@TabPFN50k\endcsname{0.369}
 \expandafter\def\csname res@time@TabPFNall\endcsname{0.376}
 \expandafter\def\csname resm@time@TabPFNall\endcsname{0.376}
 \expandafter\def\csname resmin@time@TabPFNall\endcsname{0.376}
@@ -981,3 +981,84 @@
 \expandafter\def\csname fstlosers@targetonly@1000\endcsname{none}
 \expandafter\def\csname fstwins@targetonly@5000\endcsname{9}
 \expandafter\def\csname fstlosers@targetonly@5000\endcsname{none}
+% --- results by number of training rows: \rowres{setting}{model} etc.
+\newcommand{\rowres}[2]{\csname rowres@#1@#2\endcsname}
+\newcommand{\rowresm}[2]{\csname rowresm@#1@#2\endcsname}
+\newcommand{\rowruns}[2]{\csname rowruns@#1@#2\endcsname}
+\newcommand{\rowfit}[2]{\csname rowfit@#1@#2\endcsname}
+\newcommand{\rowpred}[2]{\csname rowpred@#1@#2\endcsname}
+\expandafter\def\csname rowres@time10k@TabPFN\endcsname{0.333 $\pm$ 0.005}
+\expandafter\def\csname rowresm@time10k@TabPFN\endcsname{0.333}
+\expandafter\def\csname rowruns@time10k@TabPFN\endcsname{5}
+\expandafter\def\csname rowfit@time10k@TabPFN\endcsname{3.2}
+\expandafter\def\csname rowpred@time10k@TabPFN\endcsname{4.5}
+\expandafter\def\csname rowres@time50k@TabPFN\endcsname{0.368 $\pm$ 0.001}
+\expandafter\def\csname rowresm@time50k@TabPFN\endcsname{0.368}
+\expandafter\def\csname rowruns@time50k@TabPFN\endcsname{3}
+\expandafter\def\csname rowfit@time50k@TabPFN\endcsname{10}
+\expandafter\def\csname rowpred@time50k@TabPFN\endcsname{24}
+\expandafter\def\csname rowres@timeall@TabPFN\endcsname{0.376}
+\expandafter\def\csname rowresm@timeall@TabPFN\endcsname{0.376}
+\expandafter\def\csname rowruns@timeall@TabPFN\endcsname{1}
+\expandafter\def\csname rowfit@timeall@TabPFN\endcsname{35}
+\expandafter\def\csname rowpred@timeall@TabPFN\endcsname{344}
+\expandafter\def\csname rowres@trip10k@TabPFN\endcsname{0.331 $\pm$ 0.000}
+\expandafter\def\csname rowresm@trip10k@TabPFN\endcsname{0.331}
+\expandafter\def\csname rowruns@trip10k@TabPFN\endcsname{2}
+\expandafter\def\csname rowfit@trip10k@TabPFN\endcsname{3.8}
+\expandafter\def\csname rowpred@trip10k@TabPFN\endcsname{12}
+\expandafter\def\csname rowres@tripall@TabPFN\endcsname{0.487 $\pm$ 0.004}
+\expandafter\def\csname rowresm@tripall@TabPFN\endcsname{0.487}
+\expandafter\def\csname rowruns@tripall@TabPFN\endcsname{2}
+\expandafter\def\csname rowfit@tripall@TabPFN\endcsname{31}
+\expandafter\def\csname rowpred@tripall@TabPFN\endcsname{382}
+\expandafter\def\csname rowres@time10k@XGBoost\endcsname{0.171 $\pm$ 0.012}
+\expandafter\def\csname rowresm@time10k@XGBoost\endcsname{0.171}
+\expandafter\def\csname rowruns@time10k@XGBoost\endcsname{5}
+\expandafter\def\csname rowfit@time10k@XGBoost\endcsname{1.0}
+\expandafter\def\csname rowpred@time10k@XGBoost\endcsname{0.1}
+\expandafter\def\csname rowres@time50k@XGBoost\endcsname{0.288 $\pm$ 0.013}
+\expandafter\def\csname rowresm@time50k@XGBoost\endcsname{0.288}
+\expandafter\def\csname rowruns@time50k@XGBoost\endcsname{3}
+\expandafter\def\csname rowfit@time50k@XGBoost\endcsname{2.2}
+\expandafter\def\csname rowpred@time50k@XGBoost\endcsname{0.1}
+\expandafter\def\csname rowres@timeall@XGBoost\endcsname{0.311}
+\expandafter\def\csname rowresm@timeall@XGBoost\endcsname{0.311}
+\expandafter\def\csname rowruns@timeall@XGBoost\endcsname{1}
+\expandafter\def\csname rowfit@timeall@XGBoost\endcsname{12}
+\expandafter\def\csname rowpred@timeall@XGBoost\endcsname{0.2}
+\expandafter\def\csname rowres@trip10k@XGBoost\endcsname{0.233 $\pm$ 0.003}
+\expandafter\def\csname rowresm@trip10k@XGBoost\endcsname{0.233}
+\expandafter\def\csname rowruns@trip10k@XGBoost\endcsname{2}
+\expandafter\def\csname rowfit@trip10k@XGBoost\endcsname{0.8}
+\expandafter\def\csname rowpred@trip10k@XGBoost\endcsname{0.1}
+\expandafter\def\csname rowres@tripall@XGBoost\endcsname{0.372 $\pm$ 0.002}
+\expandafter\def\csname rowresm@tripall@XGBoost\endcsname{0.372}
+\expandafter\def\csname rowruns@tripall@XGBoost\endcsname{2}
+\expandafter\def\csname rowfit@tripall@XGBoost\endcsname{8.0}
+\expandafter\def\csname rowpred@tripall@XGBoost\endcsname{0.1}
+\expandafter\def\csname rowres@time10k@LightGBM\endcsname{0.211 $\pm$ 0.020}
+\expandafter\def\csname rowresm@time10k@LightGBM\endcsname{0.211}
+\expandafter\def\csname rowruns@time10k@LightGBM\endcsname{5}
+\expandafter\def\csname rowfit@time10k@LightGBM\endcsname{1.7}
+\expandafter\def\csname rowpred@time10k@LightGBM\endcsname{0.2}
+\expandafter\def\csname rowres@time50k@LightGBM\endcsname{0.300 $\pm$ 0.004}
+\expandafter\def\csname rowresm@time50k@LightGBM\endcsname{0.300}
+\expandafter\def\csname rowruns@time50k@LightGBM\endcsname{3}
+\expandafter\def\csname rowfit@time50k@LightGBM\endcsname{1.5}
+\expandafter\def\csname rowpred@time50k@LightGBM\endcsname{0.2}
+\expandafter\def\csname rowres@timeall@LightGBM\endcsname{0.319}
+\expandafter\def\csname rowresm@timeall@LightGBM\endcsname{0.319}
+\expandafter\def\csname rowruns@timeall@LightGBM\endcsname{1}
+\expandafter\def\csname rowfit@timeall@LightGBM\endcsname{7.2}
+\expandafter\def\csname rowpred@timeall@LightGBM\endcsname{0.2}
+\expandafter\def\csname rowres@trip10k@LightGBM\endcsname{0.247 $\pm$ 0.008}
+\expandafter\def\csname rowresm@trip10k@LightGBM\endcsname{0.247}
+\expandafter\def\csname rowruns@trip10k@LightGBM\endcsname{2}
+\expandafter\def\csname rowfit@trip10k@LightGBM\endcsname{0.8}
+\expandafter\def\csname rowpred@trip10k@LightGBM\endcsname{0.1}
+\expandafter\def\csname rowres@tripall@LightGBM\endcsname{0.364 $\pm$ 0.002}
+\expandafter\def\csname rowresm@tripall@LightGBM\endcsname{0.364}
+\expandafter\def\csname rowruns@tripall@LightGBM\endcsname{2}
+\expandafter\def\csname rowfit@tripall@LightGBM\endcsname{4.1}
+\expandafter\def\csname rowpred@tripall@LightGBM\endcsname{0.1}

@@ -12,3 +12,9 @@ tabpfn_rerun,all_features,route_grouped,TabPFN,46,v3.5,0.4.1,2026-10-09 18:46:13
 tabpfn_rerun,all_features,random,TabPFN,42,v3.5,0.4.1,2026-10-09 18:46:32,10000,99209
 time_split_tabpfn_50k,all_features,time,TabPFN,42,v3.5,0.4.1,2026-10-09 18:47:29,50000,20000
 time_split_tabpfn_all,all_features,time,TabPFN,42,v3.5,0.4.1,2026-10-09 18:53:48,372460,20000
+trip_fixed20k,all_features,trip_grouped_fixed20k,TabPFN,42,v3.5,0.4.1,2026-10-09 19:00:43,10000,20000
+trip_fixed20k_tabpfn_all,all_features,trip_grouped_fixed20k,TabPFN,42,v3.5,0.4.1,2026-10-09 19:07:41,396398,20000
+time_split_tabpfn_50k,all_features,time,TabPFN,43,v3.5,0.4.1,2026-10-09 19:08:11,50000,20000
+time_split_tabpfn_50k,all_features,time,TabPFN,44,v3.5,0.4.1,2026-10-09 19:08:40,50000,20000
+trip_fixed20k,all_features,trip_grouped_fixed20k,TabPFN,43,v3.5,0.4.1,2026-10-09 19:09:04,10000,20000
+trip_fixed20k_tabpfn_all,all_features,trip_grouped_fixed20k,TabPFN,43,v3.5,0.4.1,2026-10-09 19:15:52,396527,20000

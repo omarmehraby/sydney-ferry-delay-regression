@@ -84,6 +84,20 @@ experiment names but are no longer reported; the re-runs are experiment
   TabPFN is ahead of the boosted models on the same rows (one run each). With
   10,000 rows it is at least as good as the boosted models on all rows.
 - The cross-date limitation is removed from the paper.
+- **Same rows, every size (added later on 9 October).** The paper's
+  training-rows table compares the three models on identical training rows and
+  the same 20,000 test events: time split at 10,000 (5 samples), 50,000
+  (3 samples) and all rows (single run, not repeated by decision); trip-grouped
+  split at 10,000 and all rows (seeds 42 and 43). TabPFN is ahead in every row.
+  On the trip-grouped split with all rows its lead is much larger than on the
+  time split, so the boosted models' lead in the split table exists only
+  because TabPFN is restricted to 10,000 rows there, and the evaluation ladder
+  applies to TabPFN too once it sees all rows.
+- **Wording rules for these claims:** always "at default settings" and "on this
+  dataset"; say that tuned boosted models and CatBoost were not tested; say
+  that the few-shot experiments keep the 10,000-row restriction; report the
+  prediction-time cost of all-rows TabPFN (about six minutes for 20,000 events
+  through the hosted service, against a fraction of a second for the boosters).
 
 Where the sections below quote August numbers (for example "0.36-0.37 vs
 0.30"), read them with this update; the results files are authoritative.
