@@ -31,6 +31,13 @@ FEATURE_SETS = {
         "missing": list(MISSING_FLAGS),
     },
 }
+# Feature set A without the calendar-position features, for the time-split follow-up.
+DATE_FEATURES = ["start_date_ordinal", "day_of_year", "month", "Week"]
+FEATURE_SETS["no_date_features"] = {
+    "categorical": list(CATEGORICAL),
+    "numeric": [c for c in NUMERIC if c not in DATE_FEATURES],
+    "missing": list(MISSING_FLAGS),
+}
 for _cfg in FEATURE_SETS.values():
     _cfg["features"] = _cfg["categorical"] + _cfg["numeric"] + _cfg["missing"]
 

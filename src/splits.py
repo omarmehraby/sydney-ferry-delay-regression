@@ -59,3 +59,23 @@ def sample_whole_trips(groups, target_rows, rng):
     order = rng.permutation(len(trips))
     n_trips = int(np.searchsorted(np.cumsum(counts[order]), target_rows)) + 1
     return np.where(np.isin(groups, trips[order[:n_trips]]))[0]
+
+
+def sample_trips_exact(groups, k, rng):
+    """Draw exactly `k` rows trip by trip: whole trips in random order, with the
+    last trip cut after its first stops so the total is exactly `k`.
+
+    Returns (row positions, number of distinct trips). Rows of a trip are in
+    stop-sequence order in the cleaned table, so a cut trip keeps its earliest stops.
+    """
+    if k == 0:
+        return np.array([], dtype=int), 0
+    trips, inverse, counts = np.unique(groups, return_inverse=True, return_counts=True)
+    order = rng.permutation(len(trips))
+    cum = np.cumsum(counts[order])
+    n_trips = int(np.searchsorted(cum, k)) + 1
+    if n_trips > len(trips):
+        raise ValueError(f"only {cum[-1]} rows available, {k} requested")
+    whole = np.where(np.isin(inverse, order[:n_trips - 1]))[0]
+    last = np.where(inverse == order[n_trips - 1])[0][:k - len(whole)]
+    return np.sort(np.concatenate([whole, last])), n_trips

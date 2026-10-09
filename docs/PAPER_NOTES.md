@@ -6,23 +6,42 @@ the results files.
 
 ## Central claim
 
-**On equal data TabPFN beats both boosters; the boosters' full-data lead comes
-from about 40 times more training rows.** *(Abstract, Results, Conclusion.)*
-Evidence: experiments `equal_data_10k` and `final_5seed_trip_grouped` in
-`results/experiments/experiment_results.csv` (trip-grouped split, feature set
-A, seeds 42-46). TabPFN and the equal-data boosters are trained on the same
-10,000 rows; the full-data boosters on about 396,000.
+*(Abstract, Results, Conclusion. Numbers below are R2 and come from
+`results/experiments/experiment_results.csv`; regenerate them from the file
+rather than copying them from here.)*
 
-- **Limitation of the claim.** *(Limitations.)* It holds for default settings.
-  Boosters tuned for small training sets were not tested, so the paper must not
-  say that TabPFN beats gradient boosting on small data in general.
-- **The existing scaling curve mixes row count and trip coverage.** *(Results;
-  caption of the scaling figure.)* In `results/main_pipeline/scaling_results.csv`
-  rows are sampled as whole trips, so a larger sample also covers more trips,
-  and TabPFN's 10,000 rows cover more trips as the pool grows. The experiments
-  `diversity_whole_trips_10k` and `diversity_random_from_100k_10k` separate the
-  two effects for the boosters: with the row count fixed at 10,000, covering
-  more trips improves accuracy. Either redraw the curve or state this.
+1. **On equal data TabPFN beats both boosters, on both splits.** Given the same
+   10,000 training rows, TabPFN is ahead of XGBoost and LightGBM on the
+   trip-grouped split and on the time split, on every seed. Evidence:
+   experiments `equal_data_10k`, `final_5seed_trip_grouped` and `time_split`.
+2. **With all data the picture depends on the split.** The boosters lead on the
+   trip-grouped split (0.36-0.37 vs 0.30 for TabPFN) but not on the time split
+   (0.31-0.32 vs 0.333 +/- 0.005), where TabPFN is **at least as good** with 37
+   times fewer training rows. Say "at least as good", not "better", for the
+   full-data comparison.
+3. **The cause is not established.** Removing the four date features
+   (`start_date_ordinal`, `day_of_year`, `month`, `Week`) did not change the
+   time-split result (feature set `no_date_features`), so the date features are
+   not the explanation. Do not offer a cause in the paper.
+
+Limitations of the claim *(Limitations)*:
+
+- One time cutoff: a single train/test boundary was evaluated.
+- The full-data boosters were run once on the time split (it is deterministic),
+  so their time-split figures have no spread; TabPFN's spread is over five
+  random 10,000-row samples.
+- Default settings only. Boosters tuned for small training sets were not
+  tested, so the paper must not say that TabPFN beats gradient boosting on
+  small data in general.
+
+Related point *(Results; caption of the scaling figure)*: **the existing
+scaling curve mixes row count and trip coverage.** In
+`results/main_pipeline/scaling_results.csv` rows are sampled as whole trips, so
+a larger sample also covers more trips, and TabPFN's 10,000 rows cover more
+trips as the pool grows. The experiments `diversity_whole_trips_10k` and
+`diversity_random_from_100k_10k` separate the two effects for the boosters: with
+the row count fixed at 10,000, covering more trips improves accuracy. Either
+redraw the curve or state this.
 
 ## Must be stated
 
@@ -65,6 +84,11 @@ A, seeds 42-46). TabPFN and the equal-data boosters are trained on the same
   rows from the new route are drawn as whole trips, not random rows, because a
   real new route is observed trip by trip. The number of distinct trips is
   logged for each k.
+  Trips are added whole in random order and the last one is cut after its first
+  stops, so each k is exactly k rows.
+- **Few-shot test sets.** At most 2,000 test rows per route, the same rows for
+  every model, k and seed. The band in the few-shot figure is +/- 1 standard
+  error across the nine routes.
 
 ## Facts to carry into Data and Limitations
 
