@@ -32,8 +32,25 @@ gives the three numbers.
 
 *(Reproducibility paragraph.)*
 
-- TabPFN was called through the hosted API with `tabpfn-client` 0.4.1. The API
-  did not report which model version it served; this stays a TODO in the paper.
+- TabPFN was called through the hosted API with `tabpfn-client` 0.4.1 and
+  `model_path="auto"` (the client default), which lets the server choose the
+  model. On 9 October 2026 the settings endpoint reported `v3.5` as the default
+  model version and `train_set_max_rows` = 1,000,000 for it (v2 and v2.5:
+  50,000; v2.6: 100,000; v3: 1,000,000).
+- **The 10,000-row cap is this project's restriction, not the service's.** Write
+  "we restricted TabPFN to a random 10,000-row sample", never "TabPFN's
+  10,000-row limit". TabPFN was not run on more rows, so the paper cannot say
+  how it would do with all the data.
+- **The August and October TabPFN results may come from different model
+  versions.** The version served in August was not recorded. In the paper's
+  split table the random, trip-grouped and unseen-route TabPFN columns are from
+  August; the time column, both few-shot tables and the few-shot figure are from
+  9 October. Either re-run the August TabPFN results with the current model or
+  state this prominently.
+- Hollmann et al. 2025 describes an earlier TabPFN version than v3.5; the paper
+  needs the right reference for the version served (TODO).
+- The equal-data result is to be presented as consistent with Hollmann et al.
+  2025, not as new.
 - TabPFN runs for the time split, the few-shot experiment and the
   time-respecting few-shot experiment: 9 October 2026.
 - TabPFN runs for the random, trip-grouped and unseen-route splits (main
@@ -83,7 +100,8 @@ redraw the curve or state this.
 
 1. **TabPFN's training-size axis is not the boosters' axis.** *(Evaluation
    Protocol, and the caption of any scaling figure.)* The TabPFN wrapper
-   subsamples to 10,000 rows whenever the training set is larger. Above 10,000
+   subsamples to 10,000 rows whenever the training set is larger (our
+   restriction; see "Software and run dates"). Above 10,000
    rows, "training size" for TabPFN means the size of the pool its 10,000 rows
    were drawn from, not the number of rows it was given. XGBoost and LightGBM
    use every row. In the full-data runs TabPFN therefore sees 2–4% of the

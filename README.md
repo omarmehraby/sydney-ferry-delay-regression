@@ -87,8 +87,10 @@ The full write-up, with the ablation study, temporal-feature experiment,
 - **The dataset is probably truncated** at Excel's row limit. Unresolved.
 - **Only 9 routes exist**, so the route-grouped result rests on few held-out
   groups. Trust its sign more than its exact size.
-- **TabPFN's hosted API** caps context at about 10,000 rows (larger training
-  sets are subsampled) and has a daily quota that long experiment runs can
+- **TabPFN is restricted to 10,000 training rows by this project**, not by the
+  service: larger training sets are subsampled before they are sent. On
+  9 October 2026 the hosted API reported a limit of 1,000,000 training rows and
+  `v3.5` as its default model. The API has a usage quota that long runs can
   exhaust.
 - XGBoost and LightGBM use matched, untuned defaults by design.
 

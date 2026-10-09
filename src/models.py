@@ -43,7 +43,9 @@ def tabpfn_context_idx(n_rows, seed):
 
 
 class CapAtContext:
-    """Subsample the training rows to TabPFN's 10,000-row context limit."""
+    """Restrict TabPFN to a random 10,000-row sample of the training rows.
+
+    This is the project's own restriction, not a limit of the hosted service."""
     def __init__(self, est, seed):
         self.est, self.seed, self.was_capped = est, seed, False
 
