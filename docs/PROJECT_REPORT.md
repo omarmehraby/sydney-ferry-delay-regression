@@ -73,10 +73,12 @@ so no trip leaks between train/test), on the full 496,042-row dataset:
 | TabPFN | 100.9 | 71.4 | 0.303 | 3.5s |
 
 **Scaling experiment** (training size 1,000 → 100,000 rows, 3 seeds): RMSE
-improves steadily for all three models as training size grows; TabPFN is
-competitive or slightly ahead at small sizes (≤5,000 rows) but is capped at a
-10,000-row subsample beyond that point and gets overtaken by the boosters by
-100,000 rows (XGBoost/LightGBM RMSE ≈ 99.5 vs TabPFN ≈ 100.6). Boosters' fit
+improves steadily for all three models as training size grows. TabPFN has the
+lowest RMSE at every size from 1,000 to 50,000 rows except 2,000, where it is
+about 1 s behind XGBoost and level with LightGBM (e.g. at 20,000 rows: RMSE
+103.8 vs LightGBM 105.7 and XGBoost 106.5), even though it is capped at a
+10,000-row subsample above 10,000 rows. It is overtaken only at 100,000 rows
+(XGBoost/LightGBM RMSE ≈ 99.5 vs TabPFN ≈ 100.6). Boosters' fit
 time stays under 4s throughout; TabPFN's fit time is dominated by API overhead
 (2.4–6.8s) regardless of size — and this chart only measures fit time, not the
 often-larger prediction-side API latency.
@@ -248,18 +250,19 @@ tuning:
   API calls), documented but still a real gap if asked "does XGBoost/TabPFN
   weight features the same way?"
 - **TabPFN's hosted-API daily quota was exhausted mid-project** (hit a 429 with
-  message "resets at 2026-08-24 00:00:00 UTC"). The temporal-feature experiment
-  (Section 7) and the final 5-seed check (Section 8) are therefore
-  **XGBoost/LightGBM only** — TabPFN rows for those two experiments are still
-  missing. Today's date (2026-08-26) is past the stated reset, so TabPFN should
-  be available again; this is the clearest remaining to-do.
+  message "resets at 2026-08-24 00:00:00 UTC"), so the TabPFN runs for the
+  temporal-feature experiment (Section 7) and the final 5-seed check (Section 8)
+  were completed after the boosters. Those rows are now in
+  `experiment_results.csv` (24 and 25 TabPFN rows respectively) and are included
+  in the tables above. The quota remains a constraint on any new TabPFN
+  experiment.
 - **Runtime chart in Section 3 only measures fit time**, not TabPFN's
   prediction-side API latency, which in practice is often larger — the plotted
   runtime curve understates TabPFN's true wall-clock cost.
-- `experiment_results.csv` contains a handful of exact-duplicate rows from two
-  retried runs that partially completed before hitting the TabPFN quota (all
-  duplicates are deterministic repeats, harmless to any mean/std computed from
-  the file, but not yet cleaned up).
+- `experiment_results.csv` currently has 149 rows and no duplicates on
+  `(experiment_name, feature_set, split_type, model, random_seed)`. Re-running
+  an experiment cell appends its rows again, so de-duplicate on that key before
+  any analysis.
 
 ---
 
@@ -267,9 +270,8 @@ tuning:
 
 1. **Resolve the data-truncation question** with Prof. Sarhani — this affects
    every number in the paper if the file turns out to be incomplete.
-2. **Fill in the missing TabPFN rows** for the temporal-feature and final 5-seed
-   experiments now that the quota should have reset, for a complete three-model
-   comparison.
+2. ~~Fill in the missing TabPFN rows for the temporal-feature and final 5-seed
+   experiments.~~ Done — see Sections 7 and 8.
 3. **Lead with the leakage finding** (Section 4) as the paper's central
    methodological contribution, not a footnote — it's the most interesting and
    defensible result here, directly answering the professor's core requirement.
@@ -277,9 +279,9 @@ tuning:
    route-grouped split**, not just trip-grouped, to see whether more data helps
    the route-holdout case or if it's structurally stuck negative regardless of
    scale.
-5. **De-duplicate `experiment_results.csv`** before any final analysis pass, or
-   always de-duplicate on `(experiment_name, feature_set, split_type, model,
-   random_seed)` first, as done for this report.
+5. **Always de-duplicate `experiment_results.csv`** on `(experiment_name,
+   feature_set, split_type, model, random_seed)` before analysis, since re-run
+   cells append repeat rows (the file has none at present).
 
 ---
 
