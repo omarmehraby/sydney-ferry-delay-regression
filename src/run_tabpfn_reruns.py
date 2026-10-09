@@ -1,6 +1,6 @@
 """TabPFN re-runs on the currently served model, and TabPFN with more training rows.
 
-Run from the repository root:  python src/run_tabpfn_reruns.py
+Run from the repository root:  python src/run_tabpfn_reruns.py [--no-tabpfn]
 
 Part 1 -- re-run the August TabPFN results on today's model (feature set A,
 TabPFN restricted to the same random 10,000 training rows and scored on the same
@@ -29,12 +29,21 @@ Part 3 -- trip-grouped split scored on a fixed 20,000-row sample of the test set
 and two more random 50,000-row samples on the time split (seeds 43, 44) for
 TabPFN, XGBoost and LightGBM.
 
+Part 4 -- date-grouped split (split_type "date_grouped_fixed20k", seeds 42 and
+43): 20% of calendar dates held out at random, scored on a fixed 20,000-row
+sample of the test set. Baselines, XGBoost and LightGBM on all rows and TabPFN
+on 10,000 rows (experiment "date_grouped"), the boosters on TabPFN's 10,000
+rows ("date_grouped_equal10k") and TabPFN on all rows
+("date_grouped_tabpfn_all"). It tests whether results on the trip-grouped
+split depend on calendar dates being shared between training and test.
+
 For every TabPFN row, the model version the service reports as its default at
 the time of the call is written to results/experiments/tabpfn_run_log.csv.
 
 Resumable: logged combinations are skipped. Connection failures are retried;
 on a quota error the script stops and lists what is left.
 """
+import sys
 import time
 from datetime import datetime, timezone
 from importlib.metadata import version
@@ -42,7 +51,7 @@ from importlib.metadata import version
 import numpy as np
 
 from data import FEATURE_SETS, REPO_ROOT, load_clean, target
-from models import BOOSTERS, OrdinalEncoded, make_model, tabpfn_context_idx
+from models import BASELINES, BOOSTERS, OrdinalEncoded, make_model, tabpfn_context_idx
 from splits import cap_test, get_split
 from tracking import KEY_COLUMNS, QuotaExhausted, fit_and_score, log_result, logged_keys
 
@@ -81,6 +90,17 @@ def trip_fixed_jobs(seed):
                ("trip_fixed20k_tabpfn_all", TRIP_FIXED, "TabPFN", seed, "all")])
 
 
+DATE_GROUPED = "date_grouped_fixed20k"
+
+
+def date_grouped_jobs(seed):
+    """Every model on the date-grouped split; quota-free models first."""
+    return ([("date_grouped", DATE_GROUPED, m, seed, "all") for m in BASELINES + BOOSTERS]
+            + [("date_grouped_equal10k", DATE_GROUPED, m, seed, "capped") for m in BOOSTERS]
+            + [("date_grouped", DATE_GROUPED, "TabPFN", seed, "capped"),
+               ("date_grouped_tabpfn_all", DATE_GROUPED, "TabPFN", seed, "all")])
+
+
 def main():
     df = load_clean()
     cfg = FEATURE_SETS[FEATURE_SET]
@@ -101,7 +121,11 @@ def main():
         jobs += [("equal_data_50k", "time", m, seed, "sample50k") for m in BOOSTERS]
         jobs += [("time_split_tabpfn_50k", "time", "TabPFN", seed, "sample50k")]
     jobs += trip_fixed_jobs(43)
+    # Part 4: date-grouped split (seed 42, then 43).
+    jobs += date_grouped_jobs(42) + date_grouped_jobs(43)
 
+    if "--no-tabpfn" in sys.argv:          # run only what needs no quota
+        jobs = [j for j in jobs if j[2] != "TabPFN"]
     done = logged_keys()
     jobs = [j for j in jobs if (j[0], FEATURE_SET, j[1], j[2], j[3]) not in done]
     print(f"{len(jobs)} combinations to run.", flush=True)

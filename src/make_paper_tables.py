@@ -226,12 +226,26 @@ def split_cells(log, metric):
         rerun = A[(A.experiment_name == "tabpfn_rerun") & (A.split_type == split) & (A.model == "TabPFN")]
         if len(rerun) == n_runs:
             put("TabPFN", col, rerun)
+    # date-grouped split (fixed 20,000-row test sample)
+    D = A[A.split_type == DATE_SPLIT]
+    for m in BASELINES + MODELS:
+        put(m, "date", D[(D.experiment_name == "date_grouped") & (D.model == m)])
+    for m in ["XGBoost", "LightGBM"]:
+        put(m + "10k", "date", D[(D.experiment_name == "date_grouped_equal10k") & (D.model == m)])
+    put("TabPFNall", "date", D[D.experiment_name == "date_grouped_tabpfn_all"])
     return cells
+
+
+# Whether the split table shows the date-grouped split as a rung between
+# trip-grouped and time (set after looking at the date-grouped results).
+DATE_COLUMN = False
+SPLIT_COLUMNS = {"random": "Random", "trip": "Trip-grouped", "date": "Date-grouped",
+                 "time": "Time", "route": "Unseen routes"}
 
 
 def splits_table(log, metric, name, digits):
     cells = split_cells(log, metric)
-    cols = ["random", "trip", "route", "time"]
+    cols = [c for c in SPLIT_COLUMNS if c != "date" or (DATE_COLUMN and cells.get(("XGBoost", "date")))]
     # TabPFN with 50,000 and all rows is in the training-rows table (tab_rows.tex)
     order = [(m, MODEL_LABEL[m]) for m in BASELINES] + \
             [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"),
@@ -244,14 +258,17 @@ def splits_table(log, metric, name, digits):
             lines.append("\\hline\n")
         lines.append(label + " & " + " & ".join(mean_std(cells.get((key, c), []), digits) for c in cols) + " \\\\\n")
     write(name,
-          "\\begin{tabular}{lrrrr}\n\\hline\n"
-          "Model & Random & Trip-grouped & Unseen routes & Time \\\\\n\\hline\n"
+          "\\begin{tabular}{l" + "r" * len(cols) + "}\n\\hline\n"
+          "Model & " + " & ".join(SPLIT_COLUMNS[c] for c in cols) + " \\\\\n\\hline\n"
           + "".join(lines) + "\\hline\n\\end{tabular}\n")
 
 
 # ---------------------------------------------------------------- training rows
+DATE_SPLIT = "date_grouped_fixed20k"
+# The date-grouped rows are shown only once TabPFN on all rows has been run for that split.
 ROW_SETTINGS = [("time10k", "Time", "10{,}000"), ("time50k", "Time", "50{,}000"), ("timeall", "Time", "all"),
-                ("trip10k", "Trip-grouped", "10{,}000"), ("tripall", "Trip-grouped", "all")]
+                ("trip10k", "Trip-grouped", "10{,}000"), ("tripall", "Trip-grouped", "all"),
+                ("date10k", "Date-grouped", "10{,}000"), ("dateall", "Date-grouped", "all")]
 
 
 def rows_frames(log):
@@ -265,6 +282,8 @@ def rows_frames(log):
         ("timeall", "TabPFN"): pick("time_split_tabpfn_all", "time", "TabPFN"),
         ("trip10k", "TabPFN"): pick("trip_fixed20k", fixed, "TabPFN"),
         ("tripall", "TabPFN"): pick("trip_fixed20k_tabpfn_all", fixed, "TabPFN"),
+        ("date10k", "TabPFN"): pick("date_grouped", DATE_SPLIT, "TabPFN"),
+        ("dateall", "TabPFN"): pick("date_grouped_tabpfn_all", DATE_SPLIT, "TabPFN"),
     }
     for m in ["XGBoost", "LightGBM"]:
         frames[("time10k", m)] = pick("equal_data_10k", "time", m)
@@ -272,14 +291,17 @@ def rows_frames(log):
         frames[("timeall", m)] = pick("time_split", "time", m)
         frames[("trip10k", m)] = pick("trip_fixed20k_equal10k", fixed, m)
         frames[("tripall", m)] = pick("trip_fixed20k", fixed, m)
+        frames[("date10k", m)] = pick("date_grouped_equal10k", DATE_SPLIT, m)
+        frames[("dateall", m)] = pick("date_grouped", DATE_SPLIT, m)
     return frames
 
 
 def rows_table(log):
     frames = rows_frames(log)
     body, last = "", None
+    date_complete = not frames[("dateall", "TabPFN")].empty
     for key, split, n_rows in ROW_SETTINGS:
-        if all(frames[(key, m)].empty for m in MODELS):
+        if all(frames[(key, m)].empty for m in MODELS) or (key.startswith("date") and not date_complete):
             continue
         if last and split != last:
             body += "\\hline\n"

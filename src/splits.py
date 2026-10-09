@@ -46,6 +46,12 @@ def get_split(df, split_type, seed):
         return train_test_split(np.arange(n), test_size=0.2, random_state=seed, shuffle=True)
     if split_type == "time":
         return time_split(df)
+    if split_type == "date_grouped_fixed20k":
+        # 20% of calendar dates held out at random: no date on both sides, but test
+        # dates are interleaved with training dates. Scored on a fixed 20,000-row sample.
+        tr, te = next(GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=seed)
+                      .split(np.zeros(n), groups=df["date"].values))
+        return tr, cap_test(te)
     raise ValueError(f"Unknown split_type: {split_type!r}")
 
 

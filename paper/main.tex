@@ -311,7 +311,13 @@ On the trip-grouped split TabPFN leads at 10{,}000 rows
 (\rowres{trip10k}{TabPFN} against \rowres{trip10k}{XGBoost} and
 \rowres{trip10k}{LightGBM}) and, on \rowruns{tripall}{TabPFN} seeds, with
 all rows (\rowres{tripall}{TabPFN} against \rowres{tripall}{XGBoost} and
-\rowres{tripall}{LightGBM}). In Table~\ref{tab:splits} the boosted models are
+\rowres{tripall}{LightGBM}). The trip-grouped split shares calendar dates
+between training and test: every test event has events of the same date in
+training. \todo{A date-grouped split, which removes this sharing, has been
+run for every model except TabPFN on all rows (the API quota ran out).
+Complete that run, then either explain the size of this gap or report that
+it is unexplained, and add the date-grouped results.} In
+Table~\ref{tab:splits} the boosted models are
 ahead of TabPFN on this split only because TabPFN is restricted to 10{,}000
 rows there. With all rows TabPFN, too, scores lower on the time split than on
 the trip-grouped split, so the evaluation ladder applies to it as well once

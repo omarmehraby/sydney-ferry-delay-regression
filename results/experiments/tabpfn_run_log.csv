@@ -18,3 +18,4 @@ time_split_tabpfn_50k,all_features,time,TabPFN,43,v3.5,0.4.1,2026-10-09 19:08:11
 time_split_tabpfn_50k,all_features,time,TabPFN,44,v3.5,0.4.1,2026-10-09 19:08:40,50000,20000
 trip_fixed20k,all_features,trip_grouped_fixed20k,TabPFN,43,v3.5,0.4.1,2026-10-09 19:09:04,10000,20000
 trip_fixed20k_tabpfn_all,all_features,trip_grouped_fixed20k,TabPFN,43,v3.5,0.4.1,2026-10-09 19:15:52,396527,20000
+date_grouped,all_features,date_grouped_fixed20k,TabPFN,42,v3.5,0.4.1,2026-10-09 19:29:13,10000,20000

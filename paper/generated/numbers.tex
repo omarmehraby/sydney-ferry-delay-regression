@@ -194,6 +194,42 @@
 \expandafter\def\csname resm@route@TabPFNaug\endcsname{$-$0.099}
 \expandafter\def\csname resmin@route@TabPFNaug\endcsname{$-$0.274}
 \expandafter\def\csname resmax@route@TabPFNaug\endcsname{0.064}
+\expandafter\def\csname res@date@GlobalMean\endcsname{0.000 $\pm$ 0.000}
+\expandafter\def\csname resm@date@GlobalMean\endcsname{0.000}
+\expandafter\def\csname resmin@date@GlobalMean\endcsname{0.000}
+\expandafter\def\csname resmax@date@GlobalMean\endcsname{0.000}
+\expandafter\def\csname res@date@StopMean\endcsname{0.120 $\pm$ 0.007}
+\expandafter\def\csname resm@date@StopMean\endcsname{0.120}
+\expandafter\def\csname resmin@date@StopMean\endcsname{0.115}
+\expandafter\def\csname resmax@date@StopMean\endcsname{0.124}
+\expandafter\def\csname res@date@RouteStopMean\endcsname{0.142 $\pm$ 0.010}
+\expandafter\def\csname resm@date@RouteStopMean\endcsname{0.142}
+\expandafter\def\csname resmin@date@RouteStopMean\endcsname{0.134}
+\expandafter\def\csname resmax@date@RouteStopMean\endcsname{0.149}
+\expandafter\def\csname res@date@Ridge\endcsname{0.168 $\pm$ 0.005}
+\expandafter\def\csname resm@date@Ridge\endcsname{0.168}
+\expandafter\def\csname resmin@date@Ridge\endcsname{0.164}
+\expandafter\def\csname resmax@date@Ridge\endcsname{0.172}
+\expandafter\def\csname res@date@XGBoost\endcsname{0.342 $\pm$ 0.006}
+\expandafter\def\csname resm@date@XGBoost\endcsname{0.342}
+\expandafter\def\csname resmin@date@XGBoost\endcsname{0.338}
+\expandafter\def\csname resmax@date@XGBoost\endcsname{0.347}
+\expandafter\def\csname res@date@LightGBM\endcsname{0.336 $\pm$ 0.009}
+\expandafter\def\csname resm@date@LightGBM\endcsname{0.336}
+\expandafter\def\csname resmin@date@LightGBM\endcsname{0.330}
+\expandafter\def\csname resmax@date@LightGBM\endcsname{0.342}
+\expandafter\def\csname res@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname resm@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname resmin@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname resmax@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname res@date@XGBoost10k\endcsname{0.228 $\pm$ 0.003}
+\expandafter\def\csname resm@date@XGBoost10k\endcsname{0.228}
+\expandafter\def\csname resmin@date@XGBoost10k\endcsname{0.226}
+\expandafter\def\csname resmax@date@XGBoost10k\endcsname{0.230}
+\expandafter\def\csname res@date@LightGBM10k\endcsname{0.235 $\pm$ 0.003}
+\expandafter\def\csname resm@date@LightGBM10k\endcsname{0.235}
+\expandafter\def\csname resmin@date@LightGBM10k\endcsname{0.233}
+\expandafter\def\csname resmax@date@LightGBM10k\endcsname{0.237}
 \newcommand{\TimeTabMin}{0.325}
 \newcommand{\TimeTabMax}{0.338}
 \newcommand{\TimeTabRuns}{5}
@@ -1012,6 +1048,11 @@
 \expandafter\def\csname rowruns@tripall@TabPFN\endcsname{2}
 \expandafter\def\csname rowfit@tripall@TabPFN\endcsname{31}
 \expandafter\def\csname rowpred@tripall@TabPFN\endcsname{382}
+\expandafter\def\csname rowres@date10k@TabPFN\endcsname{0.322}
+\expandafter\def\csname rowresm@date10k@TabPFN\endcsname{0.322}
+\expandafter\def\csname rowruns@date10k@TabPFN\endcsname{1}
+\expandafter\def\csname rowfit@date10k@TabPFN\endcsname{8.2}
+\expandafter\def\csname rowpred@date10k@TabPFN\endcsname{7.1}
 \expandafter\def\csname rowres@time10k@XGBoost\endcsname{0.171 $\pm$ 0.012}
 \expandafter\def\csname rowresm@time10k@XGBoost\endcsname{0.171}
 \expandafter\def\csname rowruns@time10k@XGBoost\endcsname{5}
@@ -1037,6 +1078,16 @@
 \expandafter\def\csname rowruns@tripall@XGBoost\endcsname{2}
 \expandafter\def\csname rowfit@tripall@XGBoost\endcsname{8.0}
 \expandafter\def\csname rowpred@tripall@XGBoost\endcsname{0.1}
+\expandafter\def\csname rowres@date10k@XGBoost\endcsname{0.228 $\pm$ 0.003}
+\expandafter\def\csname rowresm@date10k@XGBoost\endcsname{0.228}
+\expandafter\def\csname rowruns@date10k@XGBoost\endcsname{2}
+\expandafter\def\csname rowfit@date10k@XGBoost\endcsname{1.3}
+\expandafter\def\csname rowpred@date10k@XGBoost\endcsname{0.2}
+\expandafter\def\csname rowres@dateall@XGBoost\endcsname{0.342 $\pm$ 0.006}
+\expandafter\def\csname rowresm@dateall@XGBoost\endcsname{0.342}
+\expandafter\def\csname rowruns@dateall@XGBoost\endcsname{2}
+\expandafter\def\csname rowfit@dateall@XGBoost\endcsname{14}
+\expandafter\def\csname rowpred@dateall@XGBoost\endcsname{0.2}
 \expandafter\def\csname rowres@time10k@LightGBM\endcsname{0.211 $\pm$ 0.020}
 \expandafter\def\csname rowresm@time10k@LightGBM\endcsname{0.211}
 \expandafter\def\csname rowruns@time10k@LightGBM\endcsname{5}
@@ -1062,3 +1113,13 @@
 \expandafter\def\csname rowruns@tripall@LightGBM\endcsname{2}
 \expandafter\def\csname rowfit@tripall@LightGBM\endcsname{4.1}
 \expandafter\def\csname rowpred@tripall@LightGBM\endcsname{0.1}
+\expandafter\def\csname rowres@date10k@LightGBM\endcsname{0.235 $\pm$ 0.003}
+\expandafter\def\csname rowresm@date10k@LightGBM\endcsname{0.235}
+\expandafter\def\csname rowruns@date10k@LightGBM\endcsname{2}
+\expandafter\def\csname rowfit@date10k@LightGBM\endcsname{1.3}
+\expandafter\def\csname rowpred@date10k@LightGBM\endcsname{0.2}
+\expandafter\def\csname rowres@dateall@LightGBM\endcsname{0.336 $\pm$ 0.009}
+\expandafter\def\csname rowresm@dateall@LightGBM\endcsname{0.336}
+\expandafter\def\csname rowruns@dateall@LightGBM\endcsname{2}
+\expandafter\def\csname rowfit@dateall@LightGBM\endcsname{7.5}
+\expandafter\def\csname rowpred@dateall@LightGBM\endcsname{0.2}

@@ -93,6 +93,22 @@ experiment names but are no longer reported; the re-runs are experiment
   time split, so the boosted models' lead in the split table exists only
   because TabPFN is restricted to 10,000 rows there, and the evaluation ladder
   applies to TabPFN too once it sees all rows.
+- **Date-grouped split (incomplete).** Experiment `date_grouped`, split_type
+  `date_grouped_fixed20k`: 20% of calendar dates held out at random, nothing
+  dropped, scored on a fixed 20,000-row test sample. Purpose: to test whether
+  TabPFN's all-rows result on the trip-grouped split (0.487) comes from
+  same-day rows being in both training and test. Done for seeds 42 and 43:
+  baselines, boosters on all rows and on TabPFN's 10,000 rows. Done for seed 42
+  only: TabPFN on 10,000 rows. **Not done: TabPFN on all rows**, because the
+  API's daily limit (5,000,000 tokens, resets 00:00 UTC) was reached on
+  9 October. Resume with `python src/run_tabpfn_reruns.py`; it skips what is
+  logged. Until then: 0.487 stays out of the abstract and the contribution
+  list, the data-efficiency claim leads with the time-split rows, and wherever
+  0.487 appears the paper says the trip-grouped split shares calendar dates
+  between training and test. After the run: if the all-rows gain shrinks, state
+  date sharing as the likely reason and add the date-grouped column to the
+  split table between trip-grouped and time (`DATE_COLUMN` in
+  `src/make_paper_tables.py`); if not, report that and offer no cause.
 - **Wording rules for these claims:** always "at default settings" and "on this
   dataset"; say that tuned boosted models and CatBoost were not tested; say
   that the few-shot experiments keep the 10,000-row restriction; report the
