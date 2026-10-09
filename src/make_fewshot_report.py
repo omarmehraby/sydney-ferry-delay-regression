@@ -4,6 +4,9 @@ Run from the repository root:  python src/make_fewshot_report.py
 
 Reads results/experiments/fewshot_results.csv and writes
 
+    (the same three outputs with the stem "fewshot_time" and figure 7 for the
+    time-respecting variant, src/run_stage4_time.py, when its results exist)
+
     results/experiments/fewshot_per_route.csv   one row per route, condition, k, model
                                                 (mean over seeds)
     results/experiments/fewshot_summary.csv     one row per condition, k, model
@@ -40,8 +43,8 @@ PANELS = [("pooled", "Pooled: other 8 routes + k rows"),
           ("target_only", "Target-only: the k rows alone")]
 
 
-def load(seeds=None):
-    df = pd.read_csv(RESULTS / "fewshot_results.csv")
+def load(stem, seeds=None):
+    df = pd.read_csv(RESULTS / f"{stem}_results.csv")
     df = df.drop_duplicates(["route", "condition", "k", "model", "random_seed"])
     if seeds is not None:
         df = df[df.random_seed.isin(seeds)]
@@ -67,7 +70,7 @@ def summary(routes_table):
     return out[out.n_routes == N_ROUTES]
 
 
-def figure(summ, k_values):
+def figure(summ, k_values, name):
     plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False,
                          "axes.edgecolor": "#b9b8b2", "xtick.color": "#52514e",
                          "ytick.color": "#52514e", "axes.labelcolor": "#0b0b0b"})
@@ -97,30 +100,37 @@ def figure(summ, k_values):
     fig.tight_layout(rect=(0, 0.09, 1, 1))
     FIGURES.mkdir(exist_ok=True)
     for ext in ("png", "pdf"):
-        fig.savefig(FIGURES / f"6_fewshot_r2_vs_k.{ext}", dpi=300)
+        fig.savefig(FIGURES / f"{name}.{ext}", dpi=300)
     plt.close(fig)
 
 
-def main():
-    df = load()
+def report(stem, seeds, figure_name):
+    """Summarise results/experiments/<stem>_results.csv."""
+    df = load(stem)
     # use only seeds that are complete for every model, so all models share the same draws
     have = set(df[["route", "condition", "k", "model", "random_seed"]].itertuples(index=False, name=None))
-    expected = all_jobs(sorted(df.route.unique()), run_tabpfn=True)
-    complete = [s for s in SEEDS if all(j in have for j in expected if j[4] == s)]
+    expected = all_jobs(sorted(df.route.unique()), run_tabpfn=True, seeds=seeds)
+    complete = [s for s in seeds if all(j in have for j in expected if j[4] == s)]
     if not complete:
         print("No seed is complete for TabPFN yet: summarising the other models only.")
         df = df[df.model != "TabPFN"]
-        complete = [s for s in SEEDS
+        complete = [s for s in seeds
                     if all(j in have for j in expected if j[4] == s and j[3] != "TabPFN")]
     df = df[df.random_seed.isin(complete)]
-    print(f"seeds used: {complete}")
+    print(f"{stem}: seeds used: {complete}")
     routes_table = per_route(df, n_seeds=len(complete))
     summ = summary(routes_table)
-    routes_table.round(4).to_csv(RESULTS / "fewshot_per_route.csv", index=False)
-    summ.round(4).to_csv(RESULTS / "fewshot_summary.csv", index=False)
-    figure(summ, sorted(df.k.unique()))
+    routes_table.round(4).to_csv(RESULTS / f"{stem}_per_route.csv", index=False)
+    summ.round(4).to_csv(RESULTS / f"{stem}_summary.csv", index=False)
+    figure(summ, sorted(df.k.unique()), figure_name)
     wide = summ.pivot_table(index=["condition", "model"], columns="k", values="R2_mean").round(3)
     print(wide.to_string())
+
+
+def main():
+    report("fewshot", SEEDS, "6_fewshot_r2_vs_k")
+    if (RESULTS / "fewshot_time_results.csv").is_file():
+        report("fewshot_time", [0], "7_fewshot_time_r2_vs_k")
 
 
 if __name__ == "__main__":

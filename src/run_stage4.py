@@ -51,10 +51,10 @@ FEWSHOT_COLUMNS = FEWSHOT_KEY + ["n_target_rows", "n_target_trips", "n_train_row
 MAIN_KEY = ["experiment_name", "feature_set", "split_type", "model", "random_seed"]
 
 
-def fewshot_done():
-    if not FEWSHOT_CSV.is_file():
+def fewshot_done(path=FEWSHOT_CSV):
+    if not path.is_file():
         return set()
-    done = pd.read_csv(FEWSHOT_CSV, usecols=FEWSHOT_KEY)
+    done = pd.read_csv(path, usecols=FEWSHOT_KEY)
     return set(done[FEWSHOT_KEY].itertuples(index=False, name=None))
 
 
@@ -89,10 +89,10 @@ class Sets:
         return np.concatenate([self.others, target_rows])
 
 
-def all_jobs(routes, run_tabpfn):
+def all_jobs(routes, run_tabpfn, seeds=SEEDS):
     """Quota-free jobs first; then TabPFN seed by seed."""
     free, tabpfn = [], []
-    for seed in SEEDS:
+    for seed in seeds:
         for route in routes:
             for k in K_VALUES:
                 for model in BOOSTERS + BASELINES:
@@ -109,16 +109,22 @@ def all_jobs(routes, run_tabpfn):
 
 def main(run_tabpfn=True):
     df = load_clean()
-    cfg = FEATURE_SETS[FEATURE_SET]
-    X, y = df[cfg["features"]], target(df)
     routes = sorted(df["route_id"].unique())
     sets = {r: Sets(df, r) for r in routes}
     for r in routes:
         print(f"{r}: adaptation pool {len(sets[r].pool):,} rows, test {len(sets[r].test):,} rows, "
               f"other routes {len(sets[r].others):,} rows")
+    run(df, sets, SEEDS, FEWSHOT_CSV, "fewshot", run_tabpfn)
 
-    done = fewshot_done()
-    jobs = [j for j in all_jobs(routes, run_tabpfn) if j not in done]
+
+def run(df, sets, seeds, out_csv, experiment, run_tabpfn):
+    """Run every pending combination for the route sets in `sets` and log it to
+    `out_csv` and, under experiment name `experiment`, to experiment_results.csv."""
+    cfg = FEATURE_SETS[FEATURE_SET]
+    X, y = df[cfg["features"]], target(df)
+    routes = sorted(sets)
+    done = fewshot_done(out_csv)
+    jobs = [j for j in all_jobs(routes, run_tabpfn, seeds) if j not in done]
     total = len(jobs)
     print(f"{total} combinations to run ({sum(j[3] == 'TabPFN' for j in jobs)} TabPFN).", flush=True)
     in_main_log = logged_keys()
@@ -152,13 +158,13 @@ def main(run_tabpfn=True):
                 continue
             stopped = f"TabPFN call failed ({type(exc).__name__}: {str(exc)[:400]})"
             break
-        main_key = ("fewshot", FEATURE_SET, f"fewshot_{route}_{condition}_k{k}", model, seed)
+        main_key = (experiment, FEATURE_SET, f"{experiment}_{route}_{condition}_k{k}", model, seed)
         if main_key not in in_main_log:
             log_result({**dict(zip(MAIN_KEY, main_key)), **res})
         log_result({"route": route, "condition": condition, "k": k, "model": model,
                     "random_seed": seed, "n_target_rows": len(target_rows),
                     "n_target_trips": n_trips, "n_train_rows": len(train),
-                    "n_test_rows": len(s.test), **res}, path=FEWSHOT_CSV, columns=FEWSHOT_COLUMNS)
+                    "n_test_rows": len(s.test), **res}, path=out_csv, columns=FEWSHOT_COLUMNS)
         jobs.pop(0)
         n_done = total - len(jobs)
         if model == "TabPFN" or n_done % 50 == 0:
@@ -173,7 +179,7 @@ def main(run_tabpfn=True):
         print(left.groupby(["model", "random_seed"]).size().to_string())
         print("next:", jobs[0])
     else:
-        print("Stage 4 complete.")
+        print(f"{experiment}: complete.")
 
 
 if __name__ == "__main__":

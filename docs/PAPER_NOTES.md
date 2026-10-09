@@ -4,6 +4,42 @@ Points that must be stated in the paper, and decisions already taken. Each item
 names the section it belongs in. Numbers are not repeated here; take them from
 the results files.
 
+## Framing
+
+*(Abstract, Introduction, Conclusion.)* TabPFN's data efficiency is what makes
+it suited to new routes. Three contributions:
+
+1. **Evaluation ladder.** Random, trip-grouped, time, unseen routes: the
+   boosted models score lower on each, and every model is below zero on unseen
+   routes. *Wording:* the ladder holds for XGBoost and LightGBM. TabPFN does not
+   follow it, since its time-split R2 is higher than its trip-grouped R2, so say
+   "the boosted models" when describing the ladder. The time split is also
+   scored on a different test set from the other splits.
+2. **Few-shot routes.** TabPFN beats the route's own mean delay from about 100
+   rows; the boosters need about 500 and stay behind up to 5,000. Name the
+   exceptions (F4 at k = 100 and 500; F1, F2 and F7 at k = 0).
+3. **Data efficiency.** See "Central claim" below.
+
+State plainly: all results use default settings, and with zero rows from a
+route no model beats the global mean. *Wording:* the second statement is exact
+on the unseen-routes split (Table 2 of the paper), where the training global
+mean has the highest mean R2. In the few-shot experiment at k = 0 every model
+is below zero, but TabPFN and the stop-mean baseline are marginally above the
+other routes' global mean, so there the paper says "no model is useful" and
+gives the three numbers.
+
+## Software and run dates
+
+*(Reproducibility paragraph.)*
+
+- TabPFN was called through the hosted API with `tabpfn-client` 0.4.1. The API
+  did not report which model version it served; this stays a TODO in the paper.
+- TabPFN runs for the time split, the few-shot experiment and the
+  time-respecting few-shot experiment: 9 October 2026.
+- TabPFN runs for the random, trip-grouped and unseen-route splits (main
+  notebook and the 5-seed evaluation): August 2026, exact dates not recorded.
+- Package versions for everything else are in `requirements.txt`.
+
 ## Central claim
 
 *(Abstract, Results, Conclusion. Numbers below are R2 and come from
@@ -100,6 +136,13 @@ redraw the curve or state this.
   14 copies), differing almost only in weather readings. De-duplication keeps
   the mean of the four numeric weather columns and the first copy's value for
   everything else. `arrival_delay` conflicts between copies in 30 events.
+- **A `trip_id` is a scheduled service, not one sailing.** 43% of the 75,781
+  trip identifiers occur on more than one date (up to six), giving 161,610
+  sailings. So the "trip-grouped" split keeps a service's dates together, and
+  the "distinct trips" logged in the few-shot experiment are distinct trip
+  identifiers. In the time-respecting few-shot experiment a trip means one
+  trip identifier on one date. Write "trip identifier" or "scheduled service"
+  in the paper, not "trip", where the difference matters.
 - **`Week` is the day of the week** (0 = Monday to 6 = Sunday), not a week
   number. The `no_date_features` follow-up therefore removed day of week along
   with the three calendar-position features. Describe it that way.

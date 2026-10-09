@@ -62,6 +62,8 @@ def numbers(log, few):
         "DateMin": date("date_min"), "DateMax": date("date_max"),
         "DistinctDates": integer("distinct_dates"),
         "NRoutes": integer("n_routes"), "NTrips": integer("n_trips"),
+        "NSailings": integer("n_sailings"), "MaxDatesPerTrip": integer("max_dates_per_trip"),
+        "TripsSeveralDatesPct": f"{float(facts['trips_on_several_dates_pct']):.0f}",
         "NStops": integer("n_stops"), "NVehicles": integer("n_vehicles"),
         "WinsorLow": f"{MINUS}{abs(int(float(facts['winsor_low'])))}",
         "WinsorHigh": integer("winsor_high"),
@@ -83,8 +85,82 @@ def numbers(log, few):
     }
     trip = log[(log.experiment_name == "final_5seed_trip_grouped") & (log.feature_set == "all_features")]
     macros["TripSeeds"] = str(trip.random_seed.nunique())
+    macros["TimeRowRatio"] = f"{float(facts['time_train_rows']) / 10000:.0f}"
+    macros["TripRowRatio"] = f"{0.8 * float(facts['events']) / 10000:.0f}"
     text = "".join(f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items())
-    write("numbers.tex", text)
+    write("numbers.tex", text + result_macros(log))
+
+
+def cond_key(condition):
+    # macro keys carry no underscore: pooled, pooled10k, targetonly
+    return condition.replace("_", "")
+
+
+def keyed(prefix, key, value):
+    return f"\\expandafter\\def\\csname {prefix}@{key}\\endcsname{{{value}}}\n"
+
+
+def accessor(name, prefix, n_args):
+    args = "@".join(f"#{i}" for i in range(1, n_args + 1))
+    return f"\\newcommand{{\\{name}}}[{n_args}]{{\\csname {prefix}@{args}\\endcsname}}\n"
+
+
+def result_macros(log):
+    """Result numbers for the prose, looked up by name:
+
+    \\res{split}{model}    mean (with +/- std where repeated)   \\resm{split}{model}  mean only
+    \\fs{cond}{model}{k}   few-shot mean R2 over routes          \\fssd  std over routes
+    \\fsmin, \\fsmax        lowest and highest route             \\fspos routes with R2 > 0
+    \\fswins{cond}{k}      routes where TabPFN beats both boosters
+    \\fslosers{cond}{k}    the other routes, by name
+    \\fst..., as above, for the time-respecting few-shot experiment
+    """
+    out = "% --- results by split: \\res{split}{model}, \\resm{split}{model}\n"
+    out += accessor("res", "res", 2) + accessor("resm", "resm", 2)
+    cells = split_cells(log, "R2")
+    for (model, split), values in cells.items():
+        v = pd.Series(values).dropna()
+        if v.empty:
+            continue
+        out += keyed("res", f"{split}@{model}", mean_std(v))
+        out += keyed("resm", f"{split}@{model}", num(v.mean()))
+    tab = pd.Series(cells[("TabPFN", "time")])
+    out += f"\\newcommand{{\\TimeTabMin}}{{{num(tab.min())}}}\n\\newcommand{{\\TimeTabMax}}{{{num(tab.max())}}}\n"
+    out += f"\\newcommand{{\\TimeTabRuns}}{{{len(tab)}}}\n"
+
+    t = log[(log.split_type == "time") & (log.random_seed == 42)
+            & log.experiment_name.isin(["time_split", "equal_data_10k", "naive_baselines"])
+            & log.model.isin(["XGBoost", "LightGBM", "Ridge"])]
+    wide = t.pivot_table(index=["experiment_name", "model"], columns="feature_set", values="R2")
+    wide.loc[("time_split", "Ridge"), "all_features"] = wide.loc[("naive_baselines", "Ridge"), "all_features"]
+    change = (wide["no_date_features"] - wide["all_features"]).dropna().abs()
+    out += f"\\newcommand{{\\NoDateMaxChange}}{{{change.max():.3f}}}\n"
+    out += f"\\newcommand{{\\NoDateCells}}{{{len(change)}}}\n"
+
+    for stem, p in [("fewshot", "fs"), ("fewshot_time", "fst")]:
+        path = RESULTS / "experiments" / f"{stem}_summary.csv"
+        if not path.is_file():
+            continue
+        s = pd.read_csv(path)
+        r = pd.read_csv(RESULTS / "experiments" / f"{stem}_per_route.csv")
+        out += f"% --- {stem}: \\{p}{{condition}}{{model}}{{k}} etc.\n"
+        for name in ["", "sd", "min", "max", "pos"]:
+            out += accessor(p + name, p + name, 3)
+        out += accessor(p + "wins", p + "wins", 2) + accessor(p + "losers", p + "losers", 2)
+        for x in s.itertuples():
+            key = f"{cond_key(x.condition)}@{x.model}@{x.k}"
+            out += keyed(p, key, num(x.R2_mean)) + keyed(p + "sd", key, f"{x.R2_std:.3f}")
+            out += keyed(p + "min", key, num(x.R2_min)) + keyed(p + "max", key, num(x.R2_max))
+            routes = r[(r.condition == x.condition) & (r.model == x.model) & (r.k == x.k)]
+            out += keyed(p + "pos", key, int((routes.R2 > 0).sum()))
+        duel = r[r.model.isin(MODELS) & r.condition.isin(["pooled", "target_only"])].pivot_table(
+            index=["condition", "k", "route"], columns="model", values="R2").dropna()
+        duel["win"] = duel["TabPFN"] > duel[["XGBoost", "LightGBM"]].max(axis=1)
+        for (cond, k), g in duel.groupby(level=[0, 1]):
+            losers = [route for (_, _, route), w in g["win"].items() if not w]
+            out += keyed(p + "wins", f"{cond_key(cond)}@{k}", int(g["win"].sum()))
+            out += keyed(p + "losers", f"{cond_key(cond)}@{k}", ", ".join(losers) if losers else "none")
+    return out
 
 
 # ---------------------------------------------------------------- routes
@@ -97,7 +173,7 @@ def routes_table():
     total = f"All & {r.events.sum():,} & 100.0 & {r.trips.sum():,} & & & & \\\\\n".replace(",", "{,}")
     write("tab_routes.tex",
           "\\begin{tabular}{lrrrrrrr}\n\\hline\n"
-          "Route & Events & Share (\\%) & Trips & Stops & Events/trip & Mean delay (s) & Std (s) \\\\\n"
+          "Route & Events & Share (\\%) & Trip ids & Stops & Events/trip id & Mean delay (s) & Std (s) \\\\\n"
           "\\hline\n" + rows + "\\hline\n" + total + "\\hline\n\\end{tabular}\n")
 
 
@@ -143,8 +219,8 @@ def splits_table(log, metric, name, digits):
 
 
 # ---------------------------------------------------------------- few-shot
-def fewshot_tables():
-    s = pd.read_csv(RESULTS / "experiments" / "fewshot_summary.csv")
+def fewshot_mean_table(stem, name):
+    s = pd.read_csv(RESULTS / "experiments" / f"{stem}_summary.csv")
     ks = sorted(s.k.unique())
     blocks = [("pooled", "Pooled (other 8 routes + $k$ rows)", MODELS + ["Ridge", "RouteStopMean", "GlobalMean"]),
               ("pooled_10k", "Pooled, TabPFN's 10{,}000 rows", ["XGBoost", "LightGBM"]),
@@ -155,11 +231,17 @@ def fewshot_tables():
         for m in models:
             row = s[(s.condition == cond) & (s.model == m)].set_index("k")["R2_mean"]
             body += MODEL_LABEL[m] + " & " + " & ".join(num(row[k]) if k in row.index else "--" for k in ks) + " \\\\\n"
-    write("tab_fewshot.tex",
+    write(name,
           "\\begin{tabular}{l" + "r" * len(ks) + "}\n\\hline\n"
           "Model & " + " & ".join(f"$k={k:,}$".replace(",", "{,}") for k in ks) + " \\\\\n"
           + body + "\\hline\n\\end{tabular}\n")
 
+
+def fewshot_tables():
+    fewshot_mean_table("fewshot", "tab_fewshot.tex")
+    if (RESULTS / "experiments" / "fewshot_time_summary.csv").is_file():
+        fewshot_mean_table("fewshot_time", "tab_fewshot_time.tex")
+    ks = sorted(pd.read_csv(RESULTS / "experiments" / "fewshot_summary.csv").k.unique())
     p = pd.read_csv(RESULTS / "experiments" / "fewshot_per_route.csv")
     p = p[p.condition == "pooled"]
     routes = sorted(p.route.unique())

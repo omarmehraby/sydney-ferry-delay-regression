@@ -21,6 +21,9 @@ distinct_dates,417
 months_without_rows,2022-05 2022-06 2022-07
 n_routes,9
 n_trips,75781
+n_sailings,161610
+max_dates_per_trip,6
+trips_on_several_dates_pct,43.0055026985656
 n_stops,50
 n_vehicles,36
 events_missing_stop_id,11

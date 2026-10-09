@@ -53,6 +53,11 @@ def main():
     facts["months_without_rows"] = " ".join(str(m) for m in months if m not in present)
     facts["n_routes"] = int(df["route_id"].nunique())
     facts["n_trips"] = int(df["trip_id"].nunique())
+    # A trip_id is a scheduled service and can recur on several dates.
+    dates_per_trip = df.groupby("trip_id")["date"].nunique()
+    facts["n_sailings"] = int(dates_per_trip.sum())
+    facts["max_dates_per_trip"] = int(dates_per_trip.max())
+    facts["trips_on_several_dates_pct"] = float(100 * (dates_per_trip > 1).mean())
     facts["n_stops"] = int(df["stop_id"].nunique())
     facts["n_vehicles"] = int(df["vehicle_id"].nunique())
     facts["events_missing_stop_id"] = int(df["stop_id"].isna().sum())
