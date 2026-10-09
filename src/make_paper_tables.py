@@ -117,6 +117,21 @@ def result_macros(log):
     """
     out = "% --- results by split: \\res{split}{model}, \\resm{split}{model}\n"
     out += accessor("res", "res", 2) + accessor("resm", "resm", 2)
+    out += accessor("resmin", "resmin", 2) + accessor("resmax", "resmax", 2)
+    routes = pd.read_csv(RESULTS / "dataset" / "dataset_routes.csv")
+    big, small = routes.loc[routes.events.idxmax()], routes.loc[routes.events.idxmin()]
+    late, early = routes.loc[routes.mean_delay.idxmax()], routes.loc[routes.mean_delay.idxmin()]
+    for name, value in [("LargestRoute", big.route_id), ("LargestRouteShare", f"{big.share_pct:.0f}"),
+                        ("SmallestRoute", small.route_id), ("SmallestRouteShare", f"{small.share_pct:.0f}"),
+                        ("LatestRoute", late.route_id), ("LatestRouteDelay", num(late.mean_delay, 0)),
+                        ("EarliestRoute", early.route_id), ("EarliestRouteDelay", num(early.mean_delay, 0)),
+                        ("EventsPerTripMin", f"{routes.rows_per_trip.min():.0f}"),
+                        ("EventsPerTripMax", f"{routes.rows_per_trip.max():.0f}")]:
+        out += f"\\newcommand{{\\{name}}}{{{value}}}\n"
+    runlog = RESULTS / "experiments" / "tabpfn_run_log.csv"
+    if runlog.is_file():
+        versions = sorted(pd.read_csv(runlog).served_default_model_version.astype(str).unique())
+        out += f"\\newcommand{{\\ServedModel}}{{{', '.join(versions)}}}\n"
     cells = split_cells(log, "R2")
     for (model, split), values in cells.items():
         v = pd.Series(values).dropna()
@@ -124,6 +139,8 @@ def result_macros(log):
             continue
         out += keyed("res", f"{split}@{model}", mean_std(v))
         out += keyed("resm", f"{split}@{model}", num(v.mean()))
+        out += keyed("resmin", f"{split}@{model}", num(v.min()))
+        out += keyed("resmax", f"{split}@{model}", num(v.max()))
     tab = pd.Series(cells[("TabPFN", "time")])
     out += f"\\newcommand{{\\TimeTabMin}}{{{num(tab.min())}}}\n\\newcommand{{\\TimeTabMax}}{{{num(tab.max())}}}\n"
     out += f"\\newcommand{{\\TimeTabRuns}}{{{len(tab)}}}\n"
@@ -199,17 +216,32 @@ def split_cells(log, metric):
     for m in ["XGBoost", "LightGBM"]:
         for col, split in [("trip", "trip_grouped"), ("time", "time")]:
             put(m + "10k", col, A[(A.experiment_name == "equal_data_10k") & (A.split_type == split) & (A.model == m)])
+        put(m + "50k", "time", A[(A.experiment_name == "equal_data_50k") & (A.model == m)])
+    put("TabPFN50k", "time", A[A.experiment_name == "time_split_tabpfn_50k"])
+    put("TabPFNall", "time", A[A.experiment_name == "time_split_tabpfn_all"])
+    # TabPFN on the first three splits: the August figures stay available as "TabPFNaug";
+    # where the re-run on the current model is complete for a split, it is used instead.
+    for col, split, n_runs in [("random", "random", 1), ("trip", "trip_grouped", 5), ("route", "route_grouped", 5)]:
+        cells[("TabPFNaug", col)] = cells[("TabPFN", col)]
+        rerun = A[(A.experiment_name == "tabpfn_rerun") & (A.split_type == split) & (A.model == "TabPFN")]
+        if len(rerun) == n_runs:
+            put("TabPFN", col, rerun)
     return cells
 
 
 def splits_table(log, metric, name, digits):
     cells = split_cells(log, metric)
     cols = ["random", "trip", "route", "time"]
-    order = [(m, MODEL_LABEL[m]) for m in BASELINES] + [(m, MODEL_LABEL[m]) for m in MODELS] + \
-            [("XGBoost10k", "XGBoost, 10{,}000 rows"), ("LightGBM10k", "LightGBM, 10{,}000 rows")]
+    order = [(m, MODEL_LABEL[m]) for m in BASELINES] + \
+            [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"), ("TabPFNall", "TabPFN, all rows"),
+             ("XGBoost50k", "XGBoost, 50{,}000 rows"), ("LightGBM50k", "LightGBM, 50{,}000 rows"),
+             ("TabPFN50k", "TabPFN, 50{,}000 rows"),
+             ("XGBoost10k", "XGBoost, 10{,}000 rows"), ("LightGBM10k", "LightGBM, 10{,}000 rows"),
+             ("TabPFN", "TabPFN, 10{,}000 rows")]
+    order = [(k, label) for k, label in order if any(cells.get((k, c)) for c in cols)]
     lines = []
     for key, label in order:
-        if key == "XGBoost" or key == "XGBoost10k":
+        if key in ("XGBoost", "XGBoost50k", "XGBoost10k"):
             lines.append("\\hline\n")
         lines.append(label + " & " + " & ".join(mean_std(cells.get((key, c), []), digits) for c in cols) + " \\\\\n")
     write(name,

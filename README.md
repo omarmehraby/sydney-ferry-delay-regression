@@ -21,6 +21,11 @@ R² under three ways of splitting train and test (all 21 features):
 | LightGBM | 0.382 | 0.362 | −0.420 |
 | TabPFN | 0.309 | 0.303 | −0.099 |
 
+These TabPFN figures are from August 2026. Re-run on 9 October 2026 with the
+model the service then served (v3.5), TabPFN scores 0.337, 0.327 and 0.000 on
+the same three splits; see [docs/PAPER_NOTES.md](docs/PAPER_NOTES.md) and the
+paper for the current results.
+
 The full write-up, with the ablation study, temporal-feature experiment,
 5-seed robustness check, and open issues, is in
 **[docs/PROJECT_REPORT.md](docs/PROJECT_REPORT.md)** — start there.

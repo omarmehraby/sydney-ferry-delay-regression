@@ -41,62 +41,159 @@
 % --- results by split: \res{split}{model}, \resm{split}{model}
 \newcommand{\res}[2]{\csname res@#1@#2\endcsname}
 \newcommand{\resm}[2]{\csname resm@#1@#2\endcsname}
+\newcommand{\resmin}[2]{\csname resmin@#1@#2\endcsname}
+\newcommand{\resmax}[2]{\csname resmax@#1@#2\endcsname}
+\newcommand{\LargestRoute}{F3}
+\newcommand{\LargestRouteShare}{41}
+\newcommand{\SmallestRoute}{F7}
+\newcommand{\SmallestRouteShare}{2}
+\newcommand{\LatestRoute}{F4}
+\newcommand{\LatestRouteDelay}{101}
+\newcommand{\EarliestRoute}{F1}
+\newcommand{\EarliestRouteDelay}{$-$32}
+\newcommand{\EventsPerTripMin}{2}
+\newcommand{\EventsPerTripMax}{15}
+\newcommand{\ServedModel}{v3.5}
 \expandafter\def\csname res@random@XGBoost\endcsname{0.399}
 \expandafter\def\csname resm@random@XGBoost\endcsname{0.399}
+\expandafter\def\csname resmin@random@XGBoost\endcsname{0.399}
+\expandafter\def\csname resmax@random@XGBoost\endcsname{0.399}
 \expandafter\def\csname res@trip@XGBoost\endcsname{0.365 $\pm$ 0.005}
 \expandafter\def\csname resm@trip@XGBoost\endcsname{0.365}
+\expandafter\def\csname resmin@trip@XGBoost\endcsname{0.361}
+\expandafter\def\csname resmax@trip@XGBoost\endcsname{0.373}
 \expandafter\def\csname res@route@XGBoost\endcsname{$-$0.398 $\pm$ 0.336}
 \expandafter\def\csname resm@route@XGBoost\endcsname{$-$0.398}
+\expandafter\def\csname resmin@route@XGBoost\endcsname{$-$0.811}
+\expandafter\def\csname resmax@route@XGBoost\endcsname{$-$0.075}
 \expandafter\def\csname res@time@XGBoost\endcsname{0.311}
 \expandafter\def\csname resm@time@XGBoost\endcsname{0.311}
+\expandafter\def\csname resmin@time@XGBoost\endcsname{0.311}
+\expandafter\def\csname resmax@time@XGBoost\endcsname{0.311}
 \expandafter\def\csname res@random@LightGBM\endcsname{0.382}
 \expandafter\def\csname resm@random@LightGBM\endcsname{0.382}
+\expandafter\def\csname resmin@random@LightGBM\endcsname{0.382}
+\expandafter\def\csname resmax@random@LightGBM\endcsname{0.382}
 \expandafter\def\csname res@trip@LightGBM\endcsname{0.355 $\pm$ 0.007}
 \expandafter\def\csname resm@trip@LightGBM\endcsname{0.355}
+\expandafter\def\csname resmin@trip@LightGBM\endcsname{0.349}
+\expandafter\def\csname resmax@trip@LightGBM\endcsname{0.363}
 \expandafter\def\csname res@route@LightGBM\endcsname{$-$0.420 $\pm$ 0.382}
 \expandafter\def\csname resm@route@LightGBM\endcsname{$-$0.420}
+\expandafter\def\csname resmin@route@LightGBM\endcsname{$-$0.985}
+\expandafter\def\csname resmax@route@LightGBM\endcsname{0.028}
 \expandafter\def\csname res@time@LightGBM\endcsname{0.319}
 \expandafter\def\csname resm@time@LightGBM\endcsname{0.319}
-\expandafter\def\csname res@random@TabPFN\endcsname{0.309}
-\expandafter\def\csname resm@random@TabPFN\endcsname{0.309}
-\expandafter\def\csname res@trip@TabPFN\endcsname{0.300 $\pm$ 0.006}
-\expandafter\def\csname resm@trip@TabPFN\endcsname{0.300}
-\expandafter\def\csname res@route@TabPFN\endcsname{$-$0.099 $\pm$ 0.126}
-\expandafter\def\csname resm@route@TabPFN\endcsname{$-$0.099}
+\expandafter\def\csname resmin@time@LightGBM\endcsname{0.319}
+\expandafter\def\csname resmax@time@LightGBM\endcsname{0.319}
+\expandafter\def\csname res@random@TabPFN\endcsname{0.337}
+\expandafter\def\csname resm@random@TabPFN\endcsname{0.337}
+\expandafter\def\csname resmin@random@TabPFN\endcsname{0.337}
+\expandafter\def\csname resmax@random@TabPFN\endcsname{0.337}
+\expandafter\def\csname res@trip@TabPFN\endcsname{0.327 $\pm$ 0.005}
+\expandafter\def\csname resm@trip@TabPFN\endcsname{0.327}
+\expandafter\def\csname resmin@trip@TabPFN\endcsname{0.322}
+\expandafter\def\csname resmax@trip@TabPFN\endcsname{0.333}
+\expandafter\def\csname res@route@TabPFN\endcsname{0.000 $\pm$ 0.071}
+\expandafter\def\csname resm@route@TabPFN\endcsname{0.000}
+\expandafter\def\csname resmin@route@TabPFN\endcsname{$-$0.098}
+\expandafter\def\csname resmax@route@TabPFN\endcsname{0.088}
 \expandafter\def\csname res@time@TabPFN\endcsname{0.333 $\pm$ 0.005}
 \expandafter\def\csname resm@time@TabPFN\endcsname{0.333}
+\expandafter\def\csname resmin@time@TabPFN\endcsname{0.325}
+\expandafter\def\csname resmax@time@TabPFN\endcsname{0.338}
 \expandafter\def\csname res@trip@GlobalMean\endcsname{0.000 $\pm$ 0.000}
 \expandafter\def\csname resm@trip@GlobalMean\endcsname{0.000}
+\expandafter\def\csname resmin@trip@GlobalMean\endcsname{0.000}
+\expandafter\def\csname resmax@trip@GlobalMean\endcsname{0.000}
 \expandafter\def\csname res@route@GlobalMean\endcsname{$-$0.028 $\pm$ 0.036}
 \expandafter\def\csname resm@route@GlobalMean\endcsname{$-$0.028}
+\expandafter\def\csname resmin@route@GlobalMean\endcsname{$-$0.087}
+\expandafter\def\csname resmax@route@GlobalMean\endcsname{$-$0.001}
 \expandafter\def\csname res@time@GlobalMean\endcsname{$-$0.003}
 \expandafter\def\csname resm@time@GlobalMean\endcsname{$-$0.003}
+\expandafter\def\csname resmin@time@GlobalMean\endcsname{$-$0.003}
+\expandafter\def\csname resmax@time@GlobalMean\endcsname{$-$0.003}
 \expandafter\def\csname res@trip@StopMean\endcsname{0.111 $\pm$ 0.005}
 \expandafter\def\csname resm@trip@StopMean\endcsname{0.111}
+\expandafter\def\csname resmin@trip@StopMean\endcsname{0.107}
+\expandafter\def\csname resmax@trip@StopMean\endcsname{0.117}
 \expandafter\def\csname res@route@StopMean\endcsname{$-$0.032 $\pm$ 0.038}
 \expandafter\def\csname resm@route@StopMean\endcsname{$-$0.032}
+\expandafter\def\csname resmin@route@StopMean\endcsname{$-$0.074}
+\expandafter\def\csname resmax@route@StopMean\endcsname{0.028}
 \expandafter\def\csname res@time@StopMean\endcsname{0.137}
 \expandafter\def\csname resm@time@StopMean\endcsname{0.137}
+\expandafter\def\csname resmin@time@StopMean\endcsname{0.137}
+\expandafter\def\csname resmax@time@StopMean\endcsname{0.137}
 \expandafter\def\csname res@trip@RouteStopMean\endcsname{0.131 $\pm$ 0.005}
 \expandafter\def\csname resm@trip@RouteStopMean\endcsname{0.131}
+\expandafter\def\csname resmin@trip@RouteStopMean\endcsname{0.125}
+\expandafter\def\csname resmax@trip@RouteStopMean\endcsname{0.138}
 \expandafter\def\csname res@route@RouteStopMean\endcsname{$-$0.032 $\pm$ 0.038}
 \expandafter\def\csname resm@route@RouteStopMean\endcsname{$-$0.032}
+\expandafter\def\csname resmin@route@RouteStopMean\endcsname{$-$0.074}
+\expandafter\def\csname resmax@route@RouteStopMean\endcsname{0.028}
 \expandafter\def\csname res@time@RouteStopMean\endcsname{0.156}
 \expandafter\def\csname resm@time@RouteStopMean\endcsname{0.156}
+\expandafter\def\csname resmin@time@RouteStopMean\endcsname{0.156}
+\expandafter\def\csname resmax@time@RouteStopMean\endcsname{0.156}
 \expandafter\def\csname res@trip@Ridge\endcsname{0.164 $\pm$ 0.005}
 \expandafter\def\csname resm@trip@Ridge\endcsname{0.164}
+\expandafter\def\csname resmin@trip@Ridge\endcsname{0.159}
+\expandafter\def\csname resmax@trip@Ridge\endcsname{0.169}
 \expandafter\def\csname res@route@Ridge\endcsname{$-$0.029 $\pm$ 0.054}
 \expandafter\def\csname resm@route@Ridge\endcsname{$-$0.029}
+\expandafter\def\csname resmin@route@Ridge\endcsname{$-$0.095}
+\expandafter\def\csname resmax@route@Ridge\endcsname{0.033}
 \expandafter\def\csname res@time@Ridge\endcsname{0.173}
 \expandafter\def\csname resm@time@Ridge\endcsname{0.173}
+\expandafter\def\csname resmin@time@Ridge\endcsname{0.173}
+\expandafter\def\csname resmax@time@Ridge\endcsname{0.173}
 \expandafter\def\csname res@trip@XGBoost10k\endcsname{0.226 $\pm$ 0.005}
 \expandafter\def\csname resm@trip@XGBoost10k\endcsname{0.226}
+\expandafter\def\csname resmin@trip@XGBoost10k\endcsname{0.221}
+\expandafter\def\csname resmax@trip@XGBoost10k\endcsname{0.233}
 \expandafter\def\csname res@time@XGBoost10k\endcsname{0.171 $\pm$ 0.012}
 \expandafter\def\csname resm@time@XGBoost10k\endcsname{0.171}
+\expandafter\def\csname resmin@time@XGBoost10k\endcsname{0.159}
+\expandafter\def\csname resmax@time@XGBoost10k\endcsname{0.190}
+\expandafter\def\csname res@time@XGBoost50k\endcsname{0.278}
+\expandafter\def\csname resm@time@XGBoost50k\endcsname{0.278}
+\expandafter\def\csname resmin@time@XGBoost50k\endcsname{0.278}
+\expandafter\def\csname resmax@time@XGBoost50k\endcsname{0.278}
 \expandafter\def\csname res@trip@LightGBM10k\endcsname{0.240 $\pm$ 0.008}
 \expandafter\def\csname resm@trip@LightGBM10k\endcsname{0.240}
+\expandafter\def\csname resmin@trip@LightGBM10k\endcsname{0.233}
+\expandafter\def\csname resmax@trip@LightGBM10k\endcsname{0.254}
 \expandafter\def\csname res@time@LightGBM10k\endcsname{0.211 $\pm$ 0.020}
 \expandafter\def\csname resm@time@LightGBM10k\endcsname{0.211}
+\expandafter\def\csname resmin@time@LightGBM10k\endcsname{0.189}
+\expandafter\def\csname resmax@time@LightGBM10k\endcsname{0.239}
+\expandafter\def\csname res@time@LightGBM50k\endcsname{0.299}
+\expandafter\def\csname resm@time@LightGBM50k\endcsname{0.299}
+\expandafter\def\csname resmin@time@LightGBM50k\endcsname{0.299}
+\expandafter\def\csname resmax@time@LightGBM50k\endcsname{0.299}
+\expandafter\def\csname res@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname resm@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname resmin@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname resmax@time@TabPFN50k\endcsname{0.368}
+\expandafter\def\csname res@time@TabPFNall\endcsname{0.376}
+\expandafter\def\csname resm@time@TabPFNall\endcsname{0.376}
+\expandafter\def\csname resmin@time@TabPFNall\endcsname{0.376}
+\expandafter\def\csname resmax@time@TabPFNall\endcsname{0.376}
+\expandafter\def\csname res@random@TabPFNaug\endcsname{0.309}
+\expandafter\def\csname resm@random@TabPFNaug\endcsname{0.309}
+\expandafter\def\csname resmin@random@TabPFNaug\endcsname{0.309}
+\expandafter\def\csname resmax@random@TabPFNaug\endcsname{0.309}
+\expandafter\def\csname res@trip@TabPFNaug\endcsname{0.300 $\pm$ 0.006}
+\expandafter\def\csname resm@trip@TabPFNaug\endcsname{0.300}
+\expandafter\def\csname resmin@trip@TabPFNaug\endcsname{0.294}
+\expandafter\def\csname resmax@trip@TabPFNaug\endcsname{0.308}
+\expandafter\def\csname res@route@TabPFNaug\endcsname{$-$0.099 $\pm$ 0.126}
+\expandafter\def\csname resm@route@TabPFNaug\endcsname{$-$0.099}
+\expandafter\def\csname resmin@route@TabPFNaug\endcsname{$-$0.274}
+\expandafter\def\csname resmax@route@TabPFNaug\endcsname{0.064}
 \newcommand{\TimeTabMin}{0.325}
 \newcommand{\TimeTabMax}{0.338}
 \newcommand{\TimeTabRuns}{5}

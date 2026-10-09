@@ -28,6 +28,12 @@ is below zero, but TabPFN and the stop-mean baseline are marginally above the
 other routes' global mean, so there the paper says "no model is useful" and
 gives the three numbers.
 
+## Venue history
+
+The ICCL 2026 presentation of this project was abstract-only, with no published
+paper. There is therefore nothing to cite for it, and this paper is the first
+written account of the work.
+
 ## Software and run dates
 
 *(Reproducibility paragraph.)*
@@ -56,6 +62,31 @@ gives the three numbers.
 - TabPFN runs for the random, trip-grouped and unseen-route splits (main
   notebook and the 5-seed evaluation): August 2026, exact dates not recorded.
 - Package versions for everything else are in `requirements.txt`.
+
+## Update after the 9 October re-runs (supersedes the August TabPFN figures)
+
+All TabPFN results in the paper are now from 9 October 2026 on model v3.5
+(`results/experiments/tabpfn_run_log.csv` records the served version per run).
+The August TabPFN rows remain in `experiment_results.csv` under their original
+experiment names but are no longer reported; the re-runs are experiment
+`tabpfn_rerun`. What changed:
+
+- **TabPFN on 10,000 rows is level across the first three splits** (random,
+  trip-grouped, time all about 0.33). The ladder holds for the boosted models
+  only.
+- **Unseen routes:** TabPFN now averages about zero, with a range that straddles
+  zero across the five splits. So "every model is below zero" and "no model
+  beats the global mean" are no longer exact. The paper says "no model is
+  reliably better than predicting a mean delay".
+- **Trip-grouped, full data:** the boosted models still lead TabPFN-on-10,000,
+  by a smaller margin than in August.
+- **Time split, more rows for TabPFN:** with 50,000 rows and with all rows
+  TabPFN is ahead of the boosted models on the same rows (one run each). With
+  10,000 rows it is at least as good as the boosted models on all rows.
+- The cross-date limitation is removed from the paper.
+
+Where the sections below quote August numbers (for example "0.36-0.37 vs
+0.30"), read them with this update; the results files are authoritative.
 
 ## Central claim
 

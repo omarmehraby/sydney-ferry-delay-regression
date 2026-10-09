@@ -5,6 +5,11 @@
 `Ferry_Delay_Regression.ipynb` (the main pipeline) and `Experiments.ipynb`
 (the experiment sandbox).*
 
+> **Note (9 October 2026).** This report describes the project as of August
+> 2026. The TabPFN numbers in it come from the model the hosted service served
+> then. Later work, including re-runs on the current model, a time-based split
+> and a few-shot route experiment, is in `docs/PAPER_NOTES.md` and `paper/`.
+
 ---
 
 ## 1. Project overview

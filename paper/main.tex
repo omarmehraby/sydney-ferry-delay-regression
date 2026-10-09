@@ -23,9 +23,9 @@
 \authorrunning{Anonymous Author(s)}
 \institute{Anonymous Institution}
 % ---- Title block: NON-ANONYMOUS version. To restore, delete the three lines
-% ---- above, uncomment the three below and fill them in. Also restore the
-% ---- acknowledgements, the repository link and the first-person citation of
-% ---- sarhani2025ferry (search for "ANONYMOUS" in this file).
+% ---- above and uncomment the four below. Also restore the acknowledgements,
+% ---- the repository link and the first-person citation of the authors' own
+% ---- earlier work (search for "ANONYMOUS" in this file).
 % \author{Omar Mehraby \and Ilias El Mataoui \and Malek Sarhani}
 % \authorrunning{O. Mehraby et al.}
 % \institute{[TODO: department], Al Akhawayn University, Ifrane, Morocco \\
@@ -37,22 +37,21 @@
 A transit operator that opens a new route has little or no delay history for
 it. We study how well tabular models predict arrival delays on such routes,
 using \Events{} stop-level events from nine Sydney ferry routes, and how the
-choice of evaluation split changes the conclusions. We compare XGBoost,
-LightGBM and the tabular foundation model TabPFN, all with default settings,
-against four simple baselines. First, the measured accuracy of the
-gradient-boosted models falls as the split becomes stricter: $R^2$ of
-\resm{random}{XGBoost} on a random split, \resm{trip}{XGBoost} when trips are
-kept together, \resm{time}{XGBoost} when testing on later dates, and below zero
-for every model on routes absent from training, where no model beats the mean
-delay of the training routes. Second, with no events from a new route no
-model is useful, but TabPFN becomes useful from about 100 events (mean $R^2$
-\fs{pooled}{TabPFN}{100}), whereas
-the boosted models need about 500 and remain behind up to 5{,}000. Third,
-consistent with earlier small-data results for TabPFN, it is more
-data-efficient: given the same 10{,}000 training rows it is ahead of both
-boosted models on the trip-grouped and the time split, and on the time split
-it is at least as good as boosted models trained on \TimeRowRatio{} times
-more rows. This data efficiency is what makes it suited to new routes.
+evaluation split changes the conclusions. We compare XGBoost, LightGBM and the
+tabular foundation model TabPFN, all with default settings, against four
+simple baselines. First, the accuracy of the gradient-boosted models falls as
+the split becomes stricter, from an $R^2$ of \resm{random}{XGBoost} on a random
+split to \resm{trip}{XGBoost} with trips kept together and \resm{time}{XGBoost}
+on later dates, while TabPFN, restricted to 10{,}000 training rows, stays near
+\resm{trip}{TabPFN} on all three. On routes absent from training no model is
+reliably better than predicting a mean delay. Second, TabPFN becomes useful
+on a new route from about 100 observed events (mean $R^2$
+\fs{pooled}{TabPFN}{100}); the boosted models need about 500 and remain behind
+up to 5{,}000. Third, consistent with earlier small-data results for TabPFN,
+it is ahead of both boosted models when all are given the same 10{,}000 rows.
+On later dates it is at least as good as boosted models trained on
+\TimeRowRatio{} times more rows, and ahead of them when given the same rows.
+This data efficiency is what makes it suited to new routes.
 
 \keywords{Delay prediction \and Public transport \and Tabular foundation
 models \and Gradient boosting \and Cold start \and Evaluation protocol}
@@ -62,282 +61,188 @@ models \and Gradient boosting \and Cold start \and Evaluation protocol}
 \section{Introduction}
 Arrival-delay predictions inform passengers and help operators plan. Models
 for this task are trained on the delay history of the routes they serve. A new
-or changed route has little or no such history, and it is not obvious how much
-a model trained on other routes can offer, or how many observations of the new
+or changed route has little or no history, and it is not obvious how much a
+model trained on other routes can offer, or how many observations of the new
 route are needed before a model is useful. Earlier work has predicted ferry
-delays from open data with machine learning~\cite{sarhani2025ferry}.
-\todo{Add further verified references on delay prediction in public
-transport.}
+delays and travel times from open data with machine
+learning~\cite{sarhani2023ferries,sarhani2025ferry}. \todo{Add further
+verified references on delay prediction in public transport.}
 
 How a model is evaluated determines what such a study can conclude. When
-training and test records are separated at random, records of the same trip,
-day and route appear on both sides, and the test score describes
-interpolation within known services rather than prediction for a new
+training and test records are separated at random, records of the same
+sailing, day and route fall on both sides, and the score describes
+interpolation within known services, not prediction for a new
 situation~\cite{kaufman2012leakage,kapoor2023leakage,roberts2017crossvalidation}.
 
 We study both questions on stop-level arrival records of nine Sydney ferry
-routes. We compare two gradient-boosted tree models,
-XGBoost~\cite{chen2016xgboost} and LightGBM~\cite{ke2017lightgbm}, with the
-tabular foundation model TabPFN~\cite{hollmann2025tabpfn} and four simple
-baselines. All models use default settings. To our knowledge this is the
-first study of ferry delay prediction for routes with little or no history.
-Our contributions are:
+routes, comparing XGBoost~\cite{chen2016xgboost},
+LightGBM~\cite{ke2017lightgbm}, the tabular foundation model
+TabPFN~\cite{hollmann2025tabpfn,jaeger2026tabpfn35} and four simple
+baselines, all with default settings. To our knowledge this is the first
+study of ferry delay prediction for routes with little or no history. Our
+contributions are:
 \begin{enumerate}
-\item \textbf{An evaluation ladder.} We evaluate the same models under four
-splits of increasing strictness. For the boosted models $R^2$ falls from
-\resm{random}{XGBoost} (random) to \resm{trip}{XGBoost} (trip-grouped) and
-\resm{time}{XGBoost} (later dates), and it is below zero for every model when
-whole routes are held out: with no events from a route, no model beats the
-mean delay of the training routes.
+\item \textbf{An evaluation ladder.} Under four splits of increasing
+strictness, the $R^2$ of the boosted models falls from \resm{random}{XGBoost}
+(random) to \resm{trip}{XGBoost} (trip-grouped) and \resm{time}{XGBoost}
+(later dates). On routes absent from training no model is reliably better
+than predicting a mean delay.
 \item \textbf{A few-shot route experiment.} Treating each route in turn as
-new, we measure accuracy as a function of the number $k$ of events observed
-on it. With $k=0$ every model has an $R^2$ below zero. TabPFN is
-better than the route's own mean delay from about 100 events; the boosted
-models need about 500 and stay behind TabPFN up to 5{,}000.
-\item \textbf{A data-efficiency comparison.} We restrict TabPFN to at most
-10{,}000 training rows. Trained on exactly those rows, both boosted models are
-behind TabPFN on the trip-grouped and the time split. This is consistent with
-the small-data results reported for TabPFN~\cite{hollmann2025tabpfn} rather
-than a new finding; what we add is that on the time split TabPFN is at least
-as good as the boosted models trained on \TimeRowRatio{} times more rows.
+new, we measure accuracy against the number $k$ of events observed on it.
+TabPFN is better than the route's own mean delay from about 100 events; the
+boosted models need about 500 and stay behind TabPFN up to 5{,}000.
+\item \textbf{A data-efficiency comparison.} Given the same 10{,}000 training
+rows, TabPFN is ahead of both boosted models. This is consistent with the
+small-data results reported for TabPFN~\cite{hollmann2025tabpfn}, not a new
+finding. What we add is that on later dates TabPFN with 10{,}000 rows is at
+least as good as the boosted models with \TimeRowRatio{} times more, and
+ahead of them when given all rows.
 \end{enumerate}
-We read the three results together: TabPFN's data efficiency is what makes it
-suited to routes with little history. All results hold for default settings;
-no model was tuned.
+Taken together, TabPFN's data efficiency is what makes it suited to routes
+with little history. All results hold for default settings; no model was
+tuned.
 
 % ---------------------------------------------------------------------------
 \section{Related Work}
-\paragraph{Tabular models.}
-Gradient-boosted decision trees such as XGBoost~\cite{chen2016xgboost} and
-LightGBM~\cite{ke2017lightgbm} are a standard choice for tabular prediction.
-Benchmark studies have found them to match or outperform deep learning models
-on typical tabular datasets~\cite{grinsztajn2022why,shwartzziv2022tabular}.
-TabPFN~\cite{hollmann2025tabpfn} is a tabular foundation model that predicts
-from a training set given as context, without dataset-specific training, and
-was introduced for datasets of up to about 10{,}000 samples.
+\paragraph{Ferry delay prediction.}
+% ANONYMOUS: cited in the third person for review. In the final version these
+% two papers may be described as the authors' own earlier work.
+The closest prior work is by Sarhani et
+al.~\cite{sarhani2023ferries,sarhani2025ferry}, who predict and analyse ferry
+travel times and delays from open data with machine learning. \todo{Describe
+their data, models and evaluation split, and state precisely how this paper
+differs.} To our knowledge, delay prediction for ferry routes with little or
+no history, and the number of observations a new route needs, have not been
+studied before. \todo{Confirm against these two papers and the wider
+literature; add verified references on cold-start prediction.}
 
-\paragraph{Evaluation and distribution shift.}
-Leakage, in which information that would not be available at prediction time
-enters training or evaluation, is a known cause of optimistic
-results~\cite{kaufman2012leakage} and of irreproducible findings across
-fields~\cite{kapoor2023leakage}. For data with temporal, spatial or
-hierarchical structure, random cross-validation underestimates prediction
-error, and splits that respect the structure are
+\paragraph{Tabular models.}
+Gradient-boosted trees~\cite{chen2016xgboost,ke2017lightgbm} are a standard
+choice for tabular prediction and have been found to match or outperform deep
+learning on typical tabular
+datasets~\cite{grinsztajn2022why,shwartzziv2022tabular}.
+TabPFN~\cite{hollmann2025tabpfn} is a tabular foundation model that predicts
+from a training set given as context, without dataset-specific training; it
+was introduced for datasets of up to about 10{,}000 samples, and the version
+we use~\cite{jaeger2026tabpfn35} accepts larger ones.
+
+\paragraph{Evaluation.}
+Leakage is a known cause of optimistic results~\cite{kaufman2012leakage} and
+of irreproducible findings across fields~\cite{kapoor2023leakage}. For data
+with temporal, spatial or hierarchical structure, random cross-validation
+underestimates prediction error, and splits that respect the structure are
 recommended~\cite{roberts2017crossvalidation}. Distribution shift in tabular
 data has been benchmarked by TableShift~\cite{gardner2023tableshift}.
-
-\paragraph{Ferry delay prediction.}
-% ANONYMOUS: cited in the third person for review. If this is the authors' own
-% earlier work, the final version may say "our earlier work".
-The closest prior work is that of Sarhani et al.~\cite{sarhani2025ferry}, who
-predict and analyse ferry transit delays using open data and machine learning.
-\todo{Describe their data, models and evaluation split, and state precisely
-how this paper differs (routes with little or no history; comparison of
-evaluation splits; TabPFN).} To our knowledge, delay prediction for ferry
-routes with little or no history, and the number of observations a new route
-needs, have not been studied before. \todo{Confirm this claim against
-\cite{sarhani2025ferry} and the wider literature, and add verified references
-on delay prediction in public transport and on cold-start prediction.}
 
 % ---------------------------------------------------------------------------
 \section{Data and Preprocessing}
 \label{sec:data}
+The dataset contains stop-level arrival records for Sydney Ferries, each
+joined with the weather reading for the departure hour. \todo{State the
+provenance of the ferry records and weather readings.} The file has
+\RawRows{} rows. One ferry event (trip identifier, date, stop sequence, stop)
+can appear on several rows because an hour can carry several weather
+readings; the copies differ almost only in the weather columns. We keep one
+row per event, with the mean of the numeric weather columns and the first
+copy's value otherwise, which gives \Events{} events.
 
-\subsection{Source}
-The dataset contains stop-level arrival records for Sydney Ferries, each joined
-with the weather reading for the departure hour. \todo{State the provenance of
-the ferry records and of the weather readings, and who compiled the file.} The
-file has \RawRows{} rows and \RawColumns{} columns. Each row gives the trip
-identifier, the route, the scheduled start time and date, the position of the
-stop within the trip, the stop, the vessel, the arrival delay in seconds
-(positive when late), and the weather: dew point, humidity, wind direction,
-wind speed, pressure and a text condition.
+The events cover \NRoutes{} routes, \NStops{} stops and \NVehicles{} vessels
+on \DistinctDates{} dates between \DateMin{} and \DateMax{}, with no records
+for May to July 2022. The routes are very unequal: \LargestRoute{} has
+\LargestRouteShare\% of the events and \SmallestRoute{} has
+\SmallestRouteShare\%, and the mean delay per route ranges from
+\EarliestRouteDelay{}~s (\EarliestRoute{}) to \LatestRouteDelay{}~s
+(\LatestRoute{}). A trip identifier denotes a scheduled service, not a single
+sailing: \TripsSeveralDatesPct\% of the \NTrips{} identifiers occur on more
+than one date.
 
-\subsection{De-duplication}
-One ferry event, identified by trip identifier, start date, stop sequence and
-stop, can appear on several rows, because an hour can carry more than one
-weather reading. Of the \Events{} distinct events, \MultiCopyEvents{} appear
-more than once, up to \MaxCopies{} times. The copies of an event differ almost
-only in the weather columns; the arrival delay differs between copies in
-\DelayConflictEvents{} events. We keep one row per event, with the mean of the
-four numeric weather columns and the first copy's value for every other
-column. All experiments use these \Events{} events.
-
-The events cover \NRoutes{} routes, \NStops{} stops and \NVehicles{} vessels,
-on \DistinctDates{} dates between \DateMin{} and \DateMax{}. There are no
-records for May, June and July 2022. A trip identifier denotes a scheduled
-service, not a single sailing: \TripsSeveralDatesPct\% of the \NTrips{} trip
-identifiers occur on more than one date, up to \MaxDatesPerTrip{}, giving
-\NSailings{} sailings in total. Table~\ref{tab:routes} gives the size of each
-route. The routes differ in size, in the number of events per trip identifier,
-and in their typical delay.
-
-\begin{table}[t]
-\caption{Events, trip identifiers and stops per route after de-duplication.
-Delay statistics are computed after clipping (Sect.~\ref{sec:cleaning}).}
-\label{tab:routes}
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\input{generated/tab_routes}
-\end{table}
-
-\subsection{Cleaning and Target}
-\label{sec:cleaning}
-Weather values stored as text with units are converted to numbers. The start
-time is expressed in minutes after midnight. The raw arrival delay has extreme
-values, up to \RawDelayMax{}~s, so it is clipped to the interval
-[\WinsorLow{}, \WinsorHigh{}]~s, the 1st and 99th percentiles of the raw
-values. This changes \ClippedLow{} events at the lower end and \ClippedHigh{}
-at the upper end. After clipping, the target has mean \TargetMean{}~s and
-standard deviation \TargetStd{}~s.
-
-Missing values are not imputed for the tree-based models and TabPFN. Three
-indicator features record whether the stop, the wind direction or the weather
-condition is missing; a missing wind direction or condition becomes its own
-category. The stop is missing in \MissingStopEvents{} events.
-
-\subsection{Features}
-The models use 21 features: six categorical (route, stop, vessel, wind
-direction, weather condition, vessel class), twelve numeric (start time, days
-since the first date, month, day of year, day of week, stop sequence, dew
-point, humidity, wind speed, pressure, seating capacity, and a binary calendar
-flag named \texttt{Holidays} in the file) and the three missing-value
-indicators. \todo{Confirm the meaning of the \texttt{Holidays} flag with the
-data provider: it equals 1 on about 70\% of dates, so it may mark ordinary
-days rather than holidays.} The trip identifier is used only to form splits.
-
-Five columns of the file are not used. Precipitation is constant. The hour
-duplicates the start time. Wind gust is zero on most rows. Total capacity is
-fixed per vessel and closely follows seating capacity. Ridership is a monthly
-total per route, which would not be known when a prediction is made.
+The target is the arrival delay in seconds, clipped to
+[\WinsorLow{}, \WinsorHigh{}], the 1st and 99th percentiles of the raw
+values; after clipping it has mean \TargetMean{}~s and standard deviation
+\TargetStd{}~s. The models use 21 features: six categorical (route, stop,
+vessel, wind direction, weather condition, vessel class), twelve numeric
+(start time, days since the first date, month, day of year, day of week,
+stop sequence, dew point, humidity, wind speed, pressure, seating capacity
+and a binary calendar flag named \texttt{Holidays}) and three indicators for
+a missing stop, wind direction or condition. \todo{Confirm the meaning of
+\texttt{Holidays}: it equals 1 on about 70\% of dates.} The trip identifier
+is used only to form splits. Monthly ridership is in the file but is not
+used, because it would not be known when a prediction is made.
 
 % ---------------------------------------------------------------------------
 \section{Evaluation Protocol}
 \label{sec:protocol}
-
-\subsection{Models}
-We compare XGBoost~\cite{chen2016xgboost}, LightGBM~\cite{ke2017lightgbm} and
-TabPFN~\cite{hollmann2025tabpfn}. No hyperparameter is tuned for any model.
-XGBoost and LightGBM use the same fixed settings in every experiment: 300
-trees, learning rate 0.1, row and column subsampling of 0.9, and a maximum
-depth of 6 (XGBoost) or 31 leaves (LightGBM). TabPFN is used through its
-hosted API with default settings and the service's default model (client
-library tabpfn-client 0.4.1); the model versions are given in the
-reproducibility note at the end of the paper. \todo{Cite the reference for
-the model version served (v3.5); \cite{hollmann2025tabpfn} describes an
-earlier version.} Categorical features are ordinal-encoded for these three
-models, and a category not seen in training receives a separate code.
+\paragraph{Models.}
+XGBoost and LightGBM use the same fixed settings throughout (300 trees,
+learning rate 0.1, row and column subsampling 0.9, depth 6 or 31 leaves).
+TabPFN is called through its hosted API with default settings; all TabPFN
+results reported here were obtained on 9 October 2026, when the service
+served model version \ServedModel{}~\cite{jaeger2026tabpfn35}. Categorical
+features are ordinal-encoded. No hyperparameter is tuned.
 
 \paragraph{Training rows given to TabPFN.}
-We restricted TabPFN to a random 10{,}000-row sample of the training set
-whenever the training set is larger. This is our choice, not a limit of the
-service, which accepted up to 1{,}000{,}000 training rows for its default
-model when we queried it on 9 October 2026. It keeps the number of rows sent
-to the hosted service small, and 10{,}000 rows is the dataset size for which
-TabPFN was introduced~\cite{hollmann2025tabpfn}. We did not run TabPFN on
-more rows. XGBoost and LightGBM use every training row. To separate the
-effect of the model from the effect of the amount of data, we also train
-XGBoost and LightGBM on exactly the 10{,}000 rows that TabPFN receives. We
-refer to this as the equal-data comparison.
+Unless stated otherwise, we restricted TabPFN to a random 10{,}000-row sample
+of the training set. This is our choice, not a limit of the service, which
+accepted up to 1{,}000{,}000 training rows; it keeps the number of rows sent
+to the service small, and it is the dataset size for which TabPFN was
+introduced~\cite{hollmann2025tabpfn}. XGBoost and LightGBM use every training
+row. To separate the model from the amount of data, we also train them on
+exactly the rows TabPFN receives (the \emph{equal-data} comparison), and on
+the time split we also run TabPFN on 50{,}000 rows and on all rows.
 
-\subsection{Baselines}
-Four baselines use statistics of the training rows only:
-(a)~the mean delay of all training rows;
-(b)~the mean delay per stop;
-(c)~the mean delay per route and stop, falling back to (b) for a route and
-stop pair not seen in training, and to (a) for a stop not seen in training;
-(d)~Ridge regression~\cite{pedregosa2011scikit} with default regularisation on
-one-hot encoded categorical features and standardised numeric features, with
-missing numeric values replaced by the training median.
+\paragraph{Baselines.}
+Four baselines use the training rows only: the global mean delay; the mean
+per stop; the mean per route and stop, falling back to the stop and then the
+global mean for unseen values; and Ridge
+regression~\cite{pedregosa2011scikit} on one-hot categorical and standardised
+numeric features.
 
-\subsection{Splits}
-We evaluate under four splits of the same events.
-\begin{description}
-\item[Random.] 80\% of events for training and 20\% for testing, chosen at
-random. Stops of the same sailing can fall on both sides.
-\item[Trip-grouped.] 80\% of trip identifiers for training and 20\% for
-testing, so that no scheduled service is on both sides. Repeated with
-\TripSeeds{} random seeds.
-\item[Unseen routes.] Two of the nine routes are held out for testing and the
-other seven are used for training. Repeated for five random choices of the
-held-out routes.
-\item[Time.] Training on the earliest 80\% of calendar dates and testing on the
-latest 20\%, with no date on both sides. Events after \CutoffDate{} are removed
-for this split only (\EventsAfterCutoff{} events), because the file contains
-later records for a single route and the test period should cover all nine.
-This leaves \TimeTrainRows{} training events on \TimeTrainDates{} dates up to
-\TimeTrainLast{}, and a test period of \TimeTestDates{} dates from
-\TimeTestFirst{} to \CutoffDate{}. The split is deterministic.
-\end{description}
+\paragraph{Splits.}
+\emph{Random}: 80\% of events for training, 20\% for testing.
+\emph{Trip-grouped}: 80\% of trip identifiers for training, so that no
+scheduled service is on both sides; \TripSeeds{} seeds.
+\emph{Unseen routes}: two of the nine routes held out, the other seven used
+for training; five choices of held-out routes.
+\emph{Time}: training on the earliest 80\% of dates and testing on the latest
+20\%. Events after \CutoffDate{} are removed for this split only, because the
+file has later records for one route alone. This leaves \TimeTrainRows{}
+training events up to \TimeTrainLast{}; every model is scored on the same
+random sample of \FixedTestCap{} test events. The other splits are scored on
+their full test sets.
 
-On the random, trip-grouped and unseen-route splits, models are scored on the
-full test set. On the time split, every model is scored on the same fixed
-random sample of \FixedTestCap{} of the \TimeTestPeriodRows{} test-period
-events. On the time split TabPFN is run on \TimeTabRuns{} different random
-10{,}000-row samples of the training events; XGBoost and LightGBM are run once
-on all training events and once on each of the samples.
+\paragraph{Few-shot route experiment.}
+Each route in turn is treated as new. Its trip identifiers are divided into
+an adaptation pool (80\%) and a test set (20\%), from which a fixed sample of
+\FewshotTestCap{} events is scored. For $k \in \{0, 100, 500, 1000, 5000\}$
+we draw $k$ events from the pool one trip identifier at a time, since
+observations of a new route arrive service by service; a given $k$ therefore
+covers different numbers of services on different routes. Each setting is
+repeated with \FewshotSeeds{} draws. In the \emph{pooled} condition a model
+is trained on all events of the other eight routes plus the $k$ events; in
+the \emph{target-only} condition on the $k$ events alone. In the pooled
+condition TabPFN receives the $k$ events and a random sample of other-route
+events, 10{,}000 rows in total, and the boosted models are also trained on
+exactly these rows. In a \emph{time-respecting} variant, the $k$ events are
+the route's most recent before the time split's cutoff, the test events come
+from after it, and other routes contribute only earlier events; it is run
+once per setting.
 
-\subsection{Few-Shot Route Experiment}
-\label{sec:fewshot-protocol}
-This experiment measures how accuracy on a new route grows with the number of
-events observed on it. Each of the nine routes in turn is treated as the new
-route. Its trip identifiers are divided into an adaptation pool (80\%) and a
-test set (20\%); the test set is a fixed sample of \FewshotTestCap{} events,
-the same for every model and setting.
-
-For $k \in \{0, 100, 500, 1000, 5000\}$, we draw $k$ events from the
-adaptation pool one trip identifier at a time: all events of randomly chosen
-trip identifiers are added, and the last one is cut after its first stops so
-that exactly $k$ events are used. Observations of a new route arrive service
-by service rather than as isolated events, and this sampling reflects that.
-Because routes differ in events per trip identifier, a given $k$ covers
-different numbers of trip identifiers on different routes. Each setting is
-repeated with \FewshotSeeds{} random draws.
-
-Models are trained under two conditions:
-\begin{description}
-\item[Pooled.] All events of the other eight routes, plus the $k$ events of
-the new route. With $k=0$ the model has never seen the new route.
-\item[Target-only.] The $k$ events of the new route alone ($k>0$).
-\end{description}
-In the pooled condition the training set always exceeds 10{,}000 rows. TabPFN
-then receives all $k$ events of the new route and a random sample of events
-from the other routes, 10{,}000 rows in total. For the equal-data comparison,
-XGBoost and LightGBM are also trained on exactly these rows. The four
-baselines are evaluated at every $k$ under both conditions.
-
-\paragraph{Time-respecting variant.}
-In the experiment above, adaptation and test events of a route are drawn from
-the same period. As a robustness check we repeat it with the cutoff of the
-time split. For each route, the adaptation events are the $k$ most recent
-events of that route up to \TimeTrainLast{}, taken sailing by sailing from the
-latest backwards; the test set is a fixed sample of \FewshotTestCap{} events
-of that route from the test period; and events of the other routes are taken
-only from before the cutoff. The adaptation events are fixed by the calendar,
-so each setting is run once.
-
-\subsection{Metrics}
-We report the coefficient of determination ($R^2$), the root mean squared
-error (RMSE) and the mean absolute error (MAE), the last two in seconds.
-$R^2$ is computed on the test set at hand, so a value below zero means that
-the model is worse than predicting the mean delay of that test set. Where a
-setting is repeated, we report the mean and the standard deviation over the
-repetitions.
+\paragraph{Metric.}
+We report $R^2$, computed on the test set at hand: a value below zero is
+worse than predicting the mean delay of that test set. Repeated settings are
+given as mean $\pm$ standard deviation.
 
 % ---------------------------------------------------------------------------
 \section{Results}
 \label{sec:results}
 
 \subsection{Effect of the Evaluation Split}
-Table~\ref{tab:splits} gives $R^2$ for every model under the four splits.
 
 \begin{table}[t]
-\caption{$R^2$ by model and evaluation split (mean $\pm$ standard deviation
-where a setting is repeated). ``10{,}000 rows'': trained on exactly the rows
-TabPFN receives. A dash marks a combination that was not run. The time split
-is scored on a fixed sample of \FixedTestCap{} test events; the other splits
-on their full test sets.}
+\caption{$R^2$ by model, number of training rows and evaluation split (mean
+$\pm$ standard deviation where repeated). Rows marked 10{,}000 or 50{,}000
+use the same random sample of training rows for all three models. A dash
+marks a combination that was not run.}
 \label{tab:splits}
 \centering
 \small
@@ -345,54 +250,50 @@ on their full test sets.}
 \input{generated/tab_splits}
 \end{table}
 
-\paragraph{The boosted models score lower on each stricter split.}
-XGBoost reaches an $R^2$ of \res{random}{XGBoost} on the random split,
-\res{trip}{XGBoost} on the trip-grouped split and \res{time}{XGBoost} on the
-time split; LightGBM follows the same order (\res{random}{LightGBM},
-\res{trip}{LightGBM}, \res{time}{LightGBM}). TabPFN does not follow it: its
-$R^2$ is \res{random}{TabPFN} and \res{trip}{TabPFN} on the first two splits
-and \res{time}{TabPFN} on the time split. The time split is scored on a
-different test set from the other two, so differences between these columns
-should be read with that in mind.
+\paragraph{The boosted models score lower on each stricter split; TabPFN
+does not.}
+In Table~\ref{tab:splits}, XGBoost falls from \res{random}{XGBoost} on the
+random split to \res{trip}{XGBoost} on the trip-grouped split and
+\res{time}{XGBoost} on the time split, and LightGBM from
+\res{random}{LightGBM} to \res{trip}{LightGBM} and \res{time}{LightGBM}.
+TabPFN on 10{,}000 rows is level across the three: \res{random}{TabPFN},
+\res{trip}{TabPFN} and \res{time}{TabPFN}. The time split is scored on a
+different test set from the other two.
 
-\paragraph{No model generalises to unseen routes.}
+\paragraph{No model is reliably useful on unseen routes.}
 On this split $R^2$ is measured against the mean delay of the held-out events
-themselves, that is, of the two held-out routes together. A model with
-$R^2=0$ does as well as someone who knew that mean in advance, and a negative
-value is worse than that. The mean delay of the seven training routes is a
-different number, which is why this baseline also scores slightly below zero
-(\res{route}{GlobalMean}). Every model has a mean $R^2$ below zero. The
-boosted models are far below (\res{route}{XGBoost} and \res{route}{LightGBM}),
-TabPFN less so (\res{route}{TabPFN}), and none is better than the mean delay
-of the training routes. The spread across the five choices of held-out routes
-is large. In the few-shot experiment below, $R^2$ is measured against the new
-route's own mean delay on its test events.
+themselves, the two held-out routes together; the mean of the seven training
+routes is a different number, which is why that baseline scores slightly
+below zero (\res{route}{GlobalMean}). The boosted models are far below zero
+(\res{route}{XGBoost} and \res{route}{LightGBM}). TabPFN averages
+\res{route}{TabPFN}, ranging from \resmin{route}{TabPFN} to
+\resmax{route}{TabPFN} over the five choices of held-out routes: it is the
+best model here, but not distinguishable from predicting a mean delay.
 
 \paragraph{On equal data TabPFN is ahead of both boosted models.}
-On the trip-grouped split the boosted models, trained on about \TripRowRatio{}
-times more rows than TabPFN, are ahead of it. Trained on exactly TabPFN's
-10{,}000 rows they fall behind it, to \res{trip}{XGBoost10k} and
-\res{trip}{LightGBM10k} against \res{trip}{TabPFN}. This agrees with the
-results reported for TabPFN on datasets of up to 10{,}000
-samples~\cite{hollmann2025tabpfn}; we do not present it as new. On the time
-split the
-order on equal data is the same (\res{time}{XGBoost10k} and
-\res{time}{LightGBM10k} against \res{time}{TabPFN}), and here the boosted
-models have no lead with all the data either: TabPFN's \TimeTabRuns{} runs
-range from \TimeTabMin{} to \TimeTabMax{}, against \res{time}{XGBoost} and
-\res{time}{LightGBM} for the boosted models trained on \TimeRowRatio{} times
-more rows. The boosted models were run once on the full training set of this
-split, so we describe TabPFN as at least as good, not better. We have not
-established why the boosted models' lead disappears on the time split.
-Removing the four date-derived features (days since the first date, day of
-year, month and day of week) changed the $R^2$ of XGBoost, LightGBM and Ridge
-by at most \NoDateMaxChange{}, on all training rows and on 10{,}000, so these
-features are not the explanation.
+On the trip-grouped split the boosted models, with about \TripRowRatio{} times
+more rows, are ahead of TabPFN. Given exactly TabPFN's 10{,}000 rows they fall
+behind it: \res{trip}{XGBoost10k} and \res{trip}{LightGBM10k} against
+\res{trip}{TabPFN}. This agrees with the results reported for TabPFN on small
+datasets~\cite{hollmann2025tabpfn}; we do not present it as new. The time
+split gives the same order on equal data (\res{time}{XGBoost10k} and
+\res{time}{LightGBM10k} against \res{time}{TabPFN}).
+
+\paragraph{On later dates more data does not put the boosted models ahead.}
+On the time split TabPFN with 10{,}000 rows (\resmin{time}{TabPFN} to
+\resmax{time}{TabPFN} over \TimeTabRuns{} samples) is at least as good as
+XGBoost (\res{time}{XGBoost}) and LightGBM (\res{time}{LightGBM}) trained on
+\TimeRowRatio{} times more rows. Given more rows TabPFN improves further, to
+\res{time}{TabPFN50k} with 50{,}000 rows and \res{time}{TabPFNall} with all
+rows, and is then ahead of the boosted models on the same rows
+(\res{time}{XGBoost50k} and \res{time}{LightGBM50k} at 50{,}000). These
+larger runs, and the boosted models on all rows, were each run once. We have
+not established why the boosted models lose more than TabPFN on later dates.
+Removing the four date-derived features changed the $R^2$ of XGBoost,
+LightGBM and Ridge by at most \NoDateMaxChange{}, so these features are not
+the explanation.
 
 \subsection{Routes with Little or No History}
-Figure~\ref{fig:fewshot} and Table~\ref{tab:fewshot} show $R^2$ on a new route
-as a function of the number $k$ of events observed on it. All
-\FewshotTabpfnRuns{} TabPFN runs of this experiment completed.
 
 \begin{figure}[t]
 \centering
@@ -405,7 +306,8 @@ error across routes.}
 
 \begin{table}[t]
 \caption{Few-shot route experiment: mean $R^2$ on the new route over the nine
-routes and three draws.}
+routes and three draws. $R^2$ is measured against the new route's own mean
+delay on its test events.}
 \label{tab:fewshot}
 \centering
 \small
@@ -413,166 +315,96 @@ routes and three draws.}
 \end{table}
 
 \paragraph{With no events from the new route, no model is useful.}
-At $k=0$ every model has a mean $R^2$ below zero. TabPFN
-(\fs{pooled}{TabPFN}{0}), the stop-mean baseline
-(\fs{pooled}{RouteStopMean}{0}) and the mean delay of the other routes
-(\fs{pooled}{GlobalMean}{0}) are close to one another; XGBoost
+At $k=0$ every model has a mean $R^2$ below zero (Fig.~\ref{fig:fewshot},
+Table~\ref{tab:fewshot}). TabPFN (\fs{pooled}{TabPFN}{0}), the stop-mean
+baseline (\fs{pooled}{RouteStopMean}{0}) and the mean delay of the other
+routes (\fs{pooled}{GlobalMean}{0}) are close together; XGBoost
 (\fs{pooled}{XGBoost}{0}) and LightGBM (\fs{pooled}{LightGBM}{0}) are much
-worse. Routes differ widely here: TabPFN's $R^2$ at $k=0$ ranges from
-\fsmin{pooled}{TabPFN}{0} to \fsmax{pooled}{TabPFN}{0}. TabPFN is ahead of
-both boosted models on \fswins{pooled}{0} of the nine routes; the exceptions
-are \fslosers{pooled}{0}.
+worse. Routes differ widely: TabPFN's $R^2$ ranges from
+\fsmin{pooled}{TabPFN}{0} to \fsmax{pooled}{TabPFN}{0}, and it is ahead of
+both boosted models on \fswins{pooled}{0} of the nine routes (not on
+\fslosers{pooled}{0}).
 
 \paragraph{TabPFN is useful from about 100 events.}
-With $k=100$ pooled with the other routes, TabPFN reaches a mean $R^2$ of
+With 100 events pooled with the other routes, TabPFN reaches a mean $R^2$ of
 \fs{pooled}{TabPFN}{100} (standard deviation across routes
 \fssd{pooled}{TabPFN}{100}; range \fsmin{pooled}{TabPFN}{100} to
-\fsmax{pooled}{TabPFN}{100}) and is above zero on all
-\fspos{pooled}{TabPFN}{100} routes. The mean delay of the 100 observed events,
-the simplest use of the same data, gives \fs{targetonly}{GlobalMean}{100}. At
-the same $k$ both boosted models are still below zero on average
-(\fs{pooled}{XGBoost}{100} and \fs{pooled}{LightGBM}{100}). They become
-positive on average at $k=500$ (\fs{pooled}{XGBoost}{500} and
-\fs{pooled}{LightGBM}{500}), where XGBoost is above zero on
-\fspos{pooled}{XGBoost}{500} of the nine routes.
+\fsmax{pooled}{TabPFN}{100}) and is above zero on all nine routes. The mean
+delay of the 100 observed events, the simplest use of the same data, gives
+\fs{targetonly}{GlobalMean}{100}. Both boosted models are still below zero on
+average (\fs{pooled}{XGBoost}{100} and \fs{pooled}{LightGBM}{100}); they
+become positive at $k=500$ (\fs{pooled}{XGBoost}{500} and
+\fs{pooled}{LightGBM}{500}).
 
 \paragraph{The boosted models stay behind up to 5{,}000 events.}
-TabPFN's mean $R^2$ rises to \fs{pooled}{TabPFN}{500} at $k=500$,
-\fs{pooled}{TabPFN}{1000} at $k=1000$ and \fs{pooled}{TabPFN}{5000} at
-$k=5000$ (standard deviation across routes \fssd{pooled}{TabPFN}{5000}). At
-$k=5000$ XGBoost reaches \fs{pooled}{XGBoost}{5000} and LightGBM
-\fs{pooled}{LightGBM}{5000}, which is about what TabPFN reaches with 500 to
-1{,}000 events. In the pooled condition TabPFN is ahead of both boosted models
-on \fswins{pooled}{100} of nine routes at $k=100$ and \fswins{pooled}{500} at
-$k=500$ (the exception in both cases is \fslosers{pooled}{100}), and on all
-nine at $k=1000$ and $k=5000$. In the target-only condition it is ahead on all
-nine routes at every $k$.
-
-\paragraph{Pooling helps when $k$ is small.}
-For TabPFN, adding the other routes' events raises the mean $R^2$ at $k=100$
-from \fs{targetonly}{TabPFN}{100} to \fs{pooled}{TabPFN}{100}; at $k=5000$
-the two conditions give \fs{targetonly}{TabPFN}{5000} and
-\fs{pooled}{TabPFN}{5000}. For the boosted models, more data from other
-routes is not better: trained on TabPFN's 10{,}000 rows they reach
-\fs{pooled10k}{XGBoost}{5000} and \fs{pooled10k}{LightGBM}{5000} at $k=5000$,
-above their results with all events of the other routes, and still below
-TabPFN on the same rows.
+TabPFN rises to \fs{pooled}{TabPFN}{500}, \fs{pooled}{TabPFN}{1000} and
+\fs{pooled}{TabPFN}{5000} at $k=500$, $1000$ and $5000$. At $k=5000$ XGBoost
+reaches \fs{pooled}{XGBoost}{5000} and LightGBM \fs{pooled}{LightGBM}{5000},
+about what TabPFN reaches with 500 to 1{,}000 events. Pooled, TabPFN is ahead
+of both boosted models on \fswins{pooled}{100} of nine routes at $k=100$ and
+$k=500$ (the exception is \fslosers{pooled}{100}) and on all nine at
+$k \geq 1000$; target-only, on all nine at every $k$. Pooling helps TabPFN
+when $k$ is small (\fs{targetonly}{TabPFN}{100} target-only against
+\fs{pooled}{TabPFN}{100} pooled at $k=100$) and no longer matters at
+$k=5000$. For the boosted models, more data from other routes is not better:
+on TabPFN's 10{,}000 rows they reach \fs{pooled10k}{XGBoost}{5000} and
+\fs{pooled10k}{LightGBM}{5000} at $k=5000$, above their results with all
+other-route events and still below TabPFN.
 
 \paragraph{The pattern holds when time is respected.}
-Table~\ref{tab:fewshot-time} repeats the experiment with the $k$ most recent
-events of the route before the cutoff and a test set from the following
-period (Sect.~\ref{sec:fewshot-protocol}). Each setting was run once. The
-order of the models is the same. At $k=0$ every model is below zero on
-average (TabPFN \fst{pooled}{TabPFN}{0}, XGBoost \fst{pooled}{XGBoost}{0},
-LightGBM \fst{pooled}{LightGBM}{0}). With 100 pooled events TabPFN reaches
-\fst{pooled}{TabPFN}{100} and is above zero on \fstpos{pooled}{TabPFN}{100}
-of the nine routes, while both boosted models are still below zero on average
-(\fst{pooled}{XGBoost}{100} and \fst{pooled}{LightGBM}{100}). At $k=5000$
-TabPFN reaches \fst{pooled}{TabPFN}{5000}, against \fst{pooled}{XGBoost}{5000}
-and \fst{pooled}{LightGBM}{5000}. This is lower than in the main experiment
-(\fs{pooled}{TabPFN}{5000}) for TabPFN and for the boosted models alike:
-predicting a later period is harder than predicting held-out services of the
-same period. In the pooled condition TabPFN is ahead of both boosted models on
-\fstwins{pooled}{0} of nine routes at $k=0$ (exceptions:
-\fstlosers{pooled}{0}), \fstwins{pooled}{100} at $k=100$,
-\fstwins{pooled}{500} at $k=500$ (exception: \fstlosers{pooled}{500}) and all
-nine at $k=1000$ and $k=5000$. In the target-only condition it is ahead on
-\fstwins{targetonly}{100} of nine routes at $k=100$ (exceptions:
-\fstlosers{targetonly}{100}) and on all nine from $k=500$. Ridge regression
-fails in the target-only condition of this variant
-(\fst{targetonly}{Ridge}{500} at $k=500$). On the larger routes the most
-recent events span only a few days; we did not investigate the cause further.
-
-\begin{table}[t]
-\caption{Time-respecting few-shot experiment: mean $R^2$ on the new route over
-the nine routes, one run per setting. Adaptation events are the $k$ most
-recent before the cutoff; test events are from the following period.}
-\label{tab:fewshot-time}
-\centering
-\small
-\input{generated/tab_fewshot_time}
-\end{table}
+In the time-respecting variant the order of the models is the same. With 100
+pooled events TabPFN reaches \fst{pooled}{TabPFN}{100} while XGBoost and
+LightGBM are below zero (\fst{pooled}{XGBoost}{100} and
+\fst{pooled}{LightGBM}{100}); at $k=5000$ TabPFN reaches
+\fst{pooled}{TabPFN}{5000} against \fst{pooled}{XGBoost}{5000} and
+\fst{pooled}{LightGBM}{5000}. All three are lower than in the main
+experiment. Pooled, TabPFN is ahead of both boosted models on
+\fstwins{pooled}{0} of nine routes at $k=0$, \fstwins{pooled}{100} at
+$k=100$, \fstwins{pooled}{500} at $k=500$ and all nine beyond.
 
 % ---------------------------------------------------------------------------
 \section{Limitations}
 \label{sec:limitations}
+\paragraph{Data.}
+The source file has exactly the row limit of a spreadsheet application and
+its last month contains one route only, so it was probably truncated on
+export. \todo{Confirm with the data provider.} The weather features are
+observed readings; a deployed model would have to use forecasts. The results
+rest on nine routes of one operator, which differ strongly in size.
 
-\paragraph{The source file may be incomplete.}
-The file has \RawRows{} rows, which is the row limit of a spreadsheet
-application, and its last month contains records for one route only. It was
-probably truncated when it was exported. \todo{Confirm with the data provider
-whether the file is complete.} The records after \CutoffDate{} are excluded
-from the time split for this reason, and there are no records for three months
-of 2022.
-
-\paragraph{Weather is observed, not forecast.}
-The weather features are the readings for the departure hour. A deployed model
-would have to use forecasts, so the results overstate what weather can
-contribute in practice.
-
-\paragraph{Default settings only.}
-No model was tuned. The comparison between TabPFN and the gradient-boosted
-models therefore holds for the default settings used here; boosted models
-tuned for small training sets were not tested.
-
-\paragraph{One network, nine routes.}
-The unseen-route and few-shot results rest on nine routes of one operator, and
-the routes differ strongly in size. A given $k$ covers different numbers of
-trip identifiers on different routes.
-
-\paragraph{One time cutoff.}
-The time split uses a single boundary between training and test dates. On
-this split XGBoost and LightGBM were run once on all training events, so their
-full-data results have no measure of spread.
-
-\paragraph{TabPFN was restricted to a sample.}
-We gave TabPFN at most 10{,}000 training rows, although the hosted service
-accepts more. Where the training set is larger, its result depends on which
-rows are sampled, and we do not know how it performs with more rows.
-
-\paragraph{Two dates, possibly two model versions.}
-The TabPFN results were obtained through a hosted service on two occasions,
-in August and in October 2026, and the model version served in August was not
-recorded. Comparisons between TabPFN's results on the time split or in the
-few-shot experiments and its results on the other three splits may therefore
-involve different model versions.
+\paragraph{Method.}
+No model was tuned, so the comparison holds for default settings; boosted
+models tuned for small training sets were not tested. The time split uses a
+single cutoff, and on it the boosted models on all rows and TabPFN on more
+than 10{,}000 rows were each run once. Elsewhere TabPFN saw a 10{,}000-row
+sample, and we do not know how it performs with more rows on the other
+splits. TabPFN was used through a hosted service whose default model can
+change; our results are for the version served on the date given.
 
 % ---------------------------------------------------------------------------
 \section{Conclusion}
 We compared XGBoost, LightGBM and TabPFN, with default settings, for
-predicting ferry arrival delays, with the aim of learning what can be expected
-on a route with little or no history. Three findings stand out. The measured
-accuracy of the boosted models falls with each stricter evaluation split, and
-on routes absent from training every model is worse than predicting a mean
-delay. With no events from a new route, no model is useful; TabPFN becomes
-useful from about 100 events, and the boosted models need about 500 and
-remain behind it up to 5{,}000. Given the same training rows TabPFN is ahead
-of both boosted models, as earlier small-data results for TabPFN lead one to
-expect, and on the time split it is at least as good as
-boosted models trained on \TimeRowRatio{} times more rows. For an operator,
-the practical reading is that a small number of observed services on a new
-route is enough to start predicting its delays, provided the model is
-data-efficient. These conclusions are limited to default settings, one ferry
-network and one source file that may be incomplete. Tuned boosted models,
-forecast weather and other networks are the natural next steps.
+predicting ferry arrival delays on routes with little or no history. The
+accuracy of the boosted models falls with each stricter evaluation split,
+and on routes absent from training no model is reliably better than
+predicting a mean delay. With about 100 observed events TabPFN becomes
+useful on a new route; the boosted models need about 500 and remain behind
+up to 5{,}000. Given the same training rows TabPFN is ahead of both boosted
+models, as earlier small-data results lead one to expect, and on later dates
+it is at least as good with \TimeRowRatio{} times fewer rows. For an
+operator, a small number of observed services on a new route is enough to
+start predicting its delays, provided the model is data-efficient. Tuned
+boosted models, forecast weather and other networks are the natural next
+steps.
 
 \begin{credits}
 % ANONYMOUS: acknowledgements removed for review. Restore for the final version:
 % \subsubsection{\ackname} ...
-
 \subsubsection{Reproducibility.}
 % ANONYMOUS: repository link removed for review. Restore for the final version.
-Code available on request (link removed for review). TabPFN was called
-through its hosted API with tabpfn-client 0.4.1 and the service's default
-model. The TabPFN results on the time split (Table~\ref{tab:splits}, last
-column) and in the few-shot experiments (Fig.~\ref{fig:fewshot},
-Tables~\ref{tab:fewshot} and~\ref{tab:fewshot-time}) were obtained on 9
-October 2026, when the service reported \texttt{v3.5} as its default model
-version. The TabPFN results on the random, trip-grouped and unseen-route
-splits (Table~\ref{tab:splits}, first three columns) were obtained in August
-2026; the model version served then was not recorded. \todo{Re-run the August
-TabPFN results with the current model, or state this difference prominently.}
-
+Code available on request (link removed for review). TabPFN: hosted API,
+tabpfn-client 0.4.1, default model (\ServedModel{}), all runs on 9 October
+2026.
 % ANONYMOUS: Springer requires a competing-interests statement in the final version:
 % \subsubsection{\discintname} ...
 \end{credits}

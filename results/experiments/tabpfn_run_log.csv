@@ -1,0 +1,14 @@
+experiment_name,feature_set,split_type,model,random_seed,served_default_model_version,tabpfn_client_version,run_at_utc,n_train_rows,n_test_rows
+tabpfn_rerun,all_features,trip_grouped,TabPFN,42,v3.5,0.4.1,2026-10-09 18:42:33,10000,99644
+tabpfn_rerun,all_features,trip_grouped,TabPFN,43,v3.5,0.4.1,2026-10-09 18:42:52,10000,99515
+tabpfn_rerun,all_features,trip_grouped,TabPFN,44,v3.5,0.4.1,2026-10-09 18:43:12,10000,99459
+tabpfn_rerun,all_features,trip_grouped,TabPFN,45,v3.5,0.4.1,2026-10-09 18:43:53,10000,100931
+tabpfn_rerun,all_features,trip_grouped,TabPFN,46,v3.5,0.4.1,2026-10-09 18:44:13,10000,98793
+tabpfn_rerun,all_features,route_grouped,TabPFN,42,v3.5,0.4.1,2026-10-09 18:44:28,10000,61731
+tabpfn_rerun,all_features,route_grouped,TabPFN,43,v3.5,0.4.1,2026-10-09 18:44:51,10000,115432
+tabpfn_rerun,all_features,route_grouped,TabPFN,44,v3.5,0.4.1,2026-10-09 18:45:22,10000,213965
+tabpfn_rerun,all_features,route_grouped,TabPFN,45,v3.5,0.4.1,2026-10-09 18:45:59,10000,249258
+tabpfn_rerun,all_features,route_grouped,TabPFN,46,v3.5,0.4.1,2026-10-09 18:46:13,10000,57889
+tabpfn_rerun,all_features,random,TabPFN,42,v3.5,0.4.1,2026-10-09 18:46:32,10000,99209
+time_split_tabpfn_50k,all_features,time,TabPFN,42,v3.5,0.4.1,2026-10-09 18:47:29,50000,20000
+time_split_tabpfn_all,all_features,time,TabPFN,42,v3.5,0.4.1,2026-10-09 18:53:48,372460,20000
