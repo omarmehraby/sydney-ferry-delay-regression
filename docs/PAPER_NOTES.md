@@ -28,6 +28,14 @@ is below zero, but TabPFN and the stop-mean baseline are marginally above the
 other routes' global mean, so there the paper says "no model is useful" and
 gives the three numbers.
 
+## Submission format
+
+Review is not anonymous. The paper carries the three authors (Al Akhawayn
+University, Ifrane; department still to be filled in), the repository link, an
+acknowledgements placeholder and the competing-interests statement, and it
+describes the two Sarhani et al. papers as the authors' own earlier work. The
+limit is 8 pages including references.
+
 ## Venue history
 
 The ICCL 2026 presentation of this project was abstract-only, with no published

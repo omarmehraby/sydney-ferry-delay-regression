@@ -247,14 +247,14 @@ def splits_table(log, metric, name, digits):
     cells = split_cells(log, metric)
     cols = [c for c in SPLIT_COLUMNS if c != "date" or (DATE_COLUMN and cells.get(("XGBoost", "date")))]
     # TabPFN with 50,000 and all rows is in the training-rows table (tab_rows.tex)
-    order = [(m, MODEL_LABEL[m]) for m in BASELINES] + \
-            [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"),
+    # The baselines are reported in a sentence of the paper, not in this table.
+    order = [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"),
              ("XGBoost10k", "XGBoost, 10{,}000 rows"), ("LightGBM10k", "LightGBM, 10{,}000 rows"),
              ("TabPFN", "TabPFN, 10{,}000 rows")]
     order = [(k, label) for k, label in order if any(cells.get((k, c)) for c in cols)]
     lines = []
     for key, label in order:
-        if key in ("XGBoost", "XGBoost50k", "XGBoost10k"):
+        if key in ("XGBoost50k", "XGBoost10k"):
             lines.append("\\hline\n")
         lines.append(label + " & " + " & ".join(mean_std(cells.get((key, c), []), digits) for c in cols) + " \\\\\n")
     write(name,
