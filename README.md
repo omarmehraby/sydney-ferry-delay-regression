@@ -76,7 +76,12 @@ The full write-up, with the ablation study, temporal-feature experiment,
 3. **Set up TabPFN** (optional — XGBoost and LightGBM run without it). Run
    `notebooks/setup_tabpfn.ipynb` once to log in to the hosted TabPFN API. The
    token is stored on your machine by the client. **Never commit a token or a
-   notebook output that prints one.**
+   notebook output that prints one.** Enable the repository's pre-commit hook
+   once per clone, so that a commit of this notebook with outputs is refused:
+
+   ```bash
+   git config core.hooksPath .githooks
+   ```
 
 4. **Run the notebooks** from the `notebooks/` folder, top to bottom. Paths are
    relative to that folder, so open them there rather than changing the working

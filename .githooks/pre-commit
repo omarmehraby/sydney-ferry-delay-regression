@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+"""Refuse commits that could publish the TabPFN access token.
+
+Enable once per clone:   git config core.hooksPath .githooks
+
+Checks the staged version of every notebook:
+  1. notebooks/setup_tabpfn.ipynb must be committed without any cell outputs
+     (it handles the login, so its outputs can contain the token);
+  2. no notebook may contain a code cell that calls get_access_token.
+"""
+import json
+import subprocess
+import sys
+
+SETUP_NOTEBOOK = "notebooks/setup_tabpfn.ipynb"
+
+
+def git(*args):
+    return subprocess.run(["git", *args], capture_output=True).stdout.decode("utf-8", errors="replace")
+
+
+problems = []
+staged = git("diff", "--cached", "--name-only", "--diff-filter=ACMR").splitlines()
+for path in staged:
+    if not path.endswith(".ipynb"):
+        continue
+    try:
+        notebook = json.loads(git("show", f":{path}"))
+    except ValueError:
+        problems.append(f"{path}: not valid notebook JSON")
+        continue
+    code_cells = [c for c in notebook.get("cells", []) if c.get("cell_type") == "code"]
+    if path == SETUP_NOTEBOOK and any(c.get("outputs") for c in code_cells):
+        problems.append(f"{path}: has cell outputs. Clear all outputs before committing.")
+    if any("get_access_token" in "".join(c.get("source", [])) for c in code_cells):
+        problems.append(f"{path}: a cell calls get_access_token. Remove it; its output is the token.")
+
+if problems:
+    print("Commit refused by .githooks/pre-commit:", file=sys.stderr)
+    for p in problems:
+        print("  - " + p, file=sys.stderr)
+    sys.exit(1)
