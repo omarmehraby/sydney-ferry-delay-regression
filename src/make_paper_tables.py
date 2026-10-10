@@ -238,7 +238,7 @@ def split_cells(log, metric):
 
 # Whether the split table shows the date-grouped split as a rung between
 # trip-grouped and time (set after looking at the date-grouped results).
-DATE_COLUMN = False
+DATE_COLUMN = True
 SPLIT_COLUMNS = {"random": "Random", "trip": "Trip-grouped", "date": "Date-grouped",
                  "time": "Time", "route": "Unseen routes"}
 
@@ -248,9 +248,9 @@ def splits_table(log, metric, name, digits):
     cols = [c for c in SPLIT_COLUMNS if c != "date" or (DATE_COLUMN and cells.get(("XGBoost", "date")))]
     # TabPFN with 50,000 and all rows is in the training-rows table (tab_rows.tex)
     # The baselines are reported in a sentence of the paper, not in this table.
-    order = [("XGBoost", "XGBoost, all rows"), ("LightGBM", "LightGBM, all rows"),
-             ("XGBoost10k", "XGBoost, 10{,}000 rows"), ("LightGBM10k", "LightGBM, 10{,}000 rows"),
-             ("TabPFN", "TabPFN, 10{,}000 rows")]
+    order = [("XGBoost", "XGBoost, all"), ("LightGBM", "LightGBM, all"),
+             ("XGBoost10k", "XGBoost, 10k"), ("LightGBM10k", "LightGBM, 10k"),
+             ("TabPFN", "TabPFN, 10k")]
     order = [(k, label) for k, label in order if any(cells.get((k, c)) for c in cols)]
     lines = []
     for key, label in order:
@@ -330,6 +330,14 @@ def rows_macros(log):
         fit, pred = f["training_time"].mean(), f["prediction_time"].mean()
         out += keyed("rowfit", k, f"{fit:.0f}" if fit >= 10 else f"{fit:.1f}")
         out += keyed("rowpred", k, f"{pred:.0f}" if pred >= 10 else f"{pred:.1f}")
+    # \rowgain{split}{model}: mean R2 with all rows minus mean R2 with 10,000 rows
+    out += accessor("rowgain", "rowgain", 2)
+    frames = rows_frames(log)
+    for split in ["trip", "date", "time"]:
+        for model in MODELS:
+            small, full = frames[(split + "10k", model)], frames[(split + "all", model)]
+            if not small.empty and not full.empty:
+                out += keyed("rowgain", f"{split}@{model}", num(full["R2"].mean() - small["R2"].mean()))
     return out
 
 

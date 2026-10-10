@@ -218,10 +218,10 @@
 \expandafter\def\csname resm@date@LightGBM\endcsname{0.336}
 \expandafter\def\csname resmin@date@LightGBM\endcsname{0.330}
 \expandafter\def\csname resmax@date@LightGBM\endcsname{0.342}
-\expandafter\def\csname res@date@TabPFN\endcsname{0.322}
-\expandafter\def\csname resm@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname res@date@TabPFN\endcsname{0.328 $\pm$ 0.009}
+\expandafter\def\csname resm@date@TabPFN\endcsname{0.328}
 \expandafter\def\csname resmin@date@TabPFN\endcsname{0.322}
-\expandafter\def\csname resmax@date@TabPFN\endcsname{0.322}
+\expandafter\def\csname resmax@date@TabPFN\endcsname{0.335}
 \expandafter\def\csname res@date@XGBoost10k\endcsname{0.228 $\pm$ 0.003}
 \expandafter\def\csname resm@date@XGBoost10k\endcsname{0.228}
 \expandafter\def\csname resmin@date@XGBoost10k\endcsname{0.226}
@@ -230,6 +230,10 @@
 \expandafter\def\csname resm@date@LightGBM10k\endcsname{0.235}
 \expandafter\def\csname resmin@date@LightGBM10k\endcsname{0.233}
 \expandafter\def\csname resmax@date@LightGBM10k\endcsname{0.237}
+\expandafter\def\csname res@date@TabPFNall\endcsname{0.393 $\pm$ 0.007}
+\expandafter\def\csname resm@date@TabPFNall\endcsname{0.393}
+\expandafter\def\csname resmin@date@TabPFNall\endcsname{0.388}
+\expandafter\def\csname resmax@date@TabPFNall\endcsname{0.398}
 \newcommand{\TimeTabMin}{0.325}
 \newcommand{\TimeTabMax}{0.338}
 \newcommand{\TimeTabRuns}{5}
@@ -1048,11 +1052,16 @@
 \expandafter\def\csname rowruns@tripall@TabPFN\endcsname{2}
 \expandafter\def\csname rowfit@tripall@TabPFN\endcsname{31}
 \expandafter\def\csname rowpred@tripall@TabPFN\endcsname{382}
-\expandafter\def\csname rowres@date10k@TabPFN\endcsname{0.322}
-\expandafter\def\csname rowresm@date10k@TabPFN\endcsname{0.322}
-\expandafter\def\csname rowruns@date10k@TabPFN\endcsname{1}
-\expandafter\def\csname rowfit@date10k@TabPFN\endcsname{8.2}
-\expandafter\def\csname rowpred@date10k@TabPFN\endcsname{7.1}
+\expandafter\def\csname rowres@date10k@TabPFN\endcsname{0.328 $\pm$ 0.009}
+\expandafter\def\csname rowresm@date10k@TabPFN\endcsname{0.328}
+\expandafter\def\csname rowruns@date10k@TabPFN\endcsname{2}
+\expandafter\def\csname rowfit@date10k@TabPFN\endcsname{8.1}
+\expandafter\def\csname rowpred@date10k@TabPFN\endcsname{7.9}
+\expandafter\def\csname rowres@dateall@TabPFN\endcsname{0.393 $\pm$ 0.007}
+\expandafter\def\csname rowresm@dateall@TabPFN\endcsname{0.393}
+\expandafter\def\csname rowruns@dateall@TabPFN\endcsname{2}
+\expandafter\def\csname rowfit@dateall@TabPFN\endcsname{19}
+\expandafter\def\csname rowpred@dateall@TabPFN\endcsname{340}
 \expandafter\def\csname rowres@time10k@XGBoost\endcsname{0.171 $\pm$ 0.012}
 \expandafter\def\csname rowresm@time10k@XGBoost\endcsname{0.171}
 \expandafter\def\csname rowruns@time10k@XGBoost\endcsname{5}
@@ -1123,3 +1132,13 @@
 \expandafter\def\csname rowruns@dateall@LightGBM\endcsname{2}
 \expandafter\def\csname rowfit@dateall@LightGBM\endcsname{7.5}
 \expandafter\def\csname rowpred@dateall@LightGBM\endcsname{0.2}
+\newcommand{\rowgain}[2]{\csname rowgain@#1@#2\endcsname}
+\expandafter\def\csname rowgain@trip@XGBoost\endcsname{0.140}
+\expandafter\def\csname rowgain@trip@LightGBM\endcsname{0.116}
+\expandafter\def\csname rowgain@trip@TabPFN\endcsname{0.156}
+\expandafter\def\csname rowgain@date@XGBoost\endcsname{0.114}
+\expandafter\def\csname rowgain@date@LightGBM\endcsname{0.100}
+\expandafter\def\csname rowgain@date@TabPFN\endcsname{0.065}
+\expandafter\def\csname rowgain@time@XGBoost\endcsname{0.140}
+\expandafter\def\csname rowgain@time@LightGBM\endcsname{0.108}
+\expandafter\def\csname rowgain@time@TabPFN\endcsname{0.042}

@@ -117,6 +117,17 @@ experiment names but are no longer reported; the re-runs are experiment
   date sharing as the likely reason and add the date-grouped column to the
   split table between trip-grouped and time (`DATE_COLUMN` in
   `src/make_paper_tables.py`); if not, report that and offer no cause.
+- **Date-grouped split: outcome (10 October 2026).** The three missing TabPFN
+  runs completed on v3.5. Going from 10,000 to all rows raises TabPFN's R2 by
+  about 0.16 on the trip-grouped split but only about 0.07 on the date-grouped
+  split and 0.04 on the time split. The gain shrinks once same-day rows are
+  removed from training, so the paper states same-day events as the likely
+  reason for the trip-grouped all-rows result, says this was not tested more
+  directly, and shows the date-grouped split as a rung between trip-grouped and
+  time in the split table (`DATE_COLUMN = True`). TabPFN with all rows is still
+  ahead of the boosted models on the date-grouped split. The entry above is kept
+  for the record of how the run was interrupted. TabPFN run dates are now 9 and
+  10 October 2026. No further experiments are planned.
 - **Wording rules for these claims:** always "at default settings" and "on this
   dataset"; say that tuned boosted models and CatBoost were not tested; say
   that the few-shot experiments keep the 10,000-row restriction; report the

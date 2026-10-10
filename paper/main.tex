@@ -76,7 +76,7 @@ LightGBM~\cite{ke2017lightgbm}, the tabular foundation model
 TabPFN~\cite{hollmann2025tabpfn,jaeger2026tabpfn35} and four simple
 baselines, all with default settings. To our knowledge this is the first
 study of ferry delay prediction for routes with little or no history. We
-contribute (1) an evaluation ladder of four splits of increasing strictness,
+contribute (1) an evaluation ladder of five splits of increasing strictness,
 ending with routes absent from training; (2) a few-shot experiment that
 measures accuracy on a new route against the number of events observed on
 it; and (3) a comparison of the models on identical training rows, from
@@ -155,7 +155,7 @@ used, because it would not be known when a prediction is made.
 XGBoost and LightGBM use the same fixed settings throughout (300 trees,
 learning rate 0.1, row and column subsampling 0.9, depth 6 or 31 leaves).
 TabPFN is called through its hosted API with default settings; all TabPFN
-results reported here were obtained on 9 October 2026, when the service
+results reported here were obtained on 9 and 10 October 2026, when the service
 served model version \ServedModel{}~\cite{jaeger2026tabpfn35}. Categorical
 features are ordinal-encoded. No hyperparameter is tuned.
 
@@ -179,15 +179,19 @@ numeric features.
 \paragraph{Splits.}
 \emph{Random}: 80\% of events for training, 20\% for testing.
 \emph{Trip-grouped}: 80\% of trip identifiers for training, so that no
-scheduled service is on both sides; \TripSeeds{} seeds.
-\emph{Unseen routes}: two of the nine routes held out, the other seven used
-for training; five choices of held-out routes.
+scheduled service is on both sides; \TripSeeds{} seeds. Every test event
+still has events of the same date in training.
+\emph{Date-grouped}: 20\% of calendar dates held out at random, so that no
+date is on both sides; two seeds.
 \emph{Time}: training on the earliest 80\% of dates and testing on the latest
 20\%. Events after \CutoffDate{} are removed for this split only, because the
 file has later records for one route alone. This leaves \TimeTrainRows{}
-training events up to \TimeTrainLast{}; every model is scored on the same
-random sample of \FixedTestCap{} test events. The other splits are scored on
-their full test sets.
+training events up to \TimeTrainLast{}.
+\emph{Unseen routes}: two of the nine routes held out, the other seven used
+for training; five choices of held-out routes.
+On the date-grouped and time splits every model is scored on the same random
+sample of \FixedTestCap{} test events; the other splits are scored on their
+full test sets.
 
 \paragraph{Few-shot route experiment.}
 Each route in turn is treated as new. Its trip identifiers are divided into
@@ -216,27 +220,28 @@ given as mean $\pm$ standard deviation.
 
 \begin{table}[t]
 \caption{$R^2$ by model, number of training rows and evaluation split (mean
-$\pm$ standard deviation where repeated). Rows marked 10{,}000 use the same
-random training rows for all three models. A dash marks a combination that
-was not run.}
+$\pm$ standard deviation where repeated). ``all'' and ``10k'' give the number
+of training rows; the 10k rows use the same random 10{,}000 training rows for
+all three models. A dash marks a combination that was not run.}
 \label{tab:splits}
 \centering
-\small
-\setlength{\tabcolsep}{4pt}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \input{generated/tab_splits}
 \end{table}
 
 \paragraph{The boosted models score lower on each stricter split; TabPFN
 does not.}
 In Table~\ref{tab:splits}, XGBoost falls from \res{random}{XGBoost} on the
-random split to \res{trip}{XGBoost} on the trip-grouped split and
-\res{time}{XGBoost} on the time split, and LightGBM from
-\res{random}{LightGBM} to \res{trip}{LightGBM} and \res{time}{LightGBM}.
-TabPFN on 10{,}000 rows is level across the three: \res{random}{TabPFN},
-\res{trip}{TabPFN} and \res{time}{TabPFN}. The time split is scored on a
-different test set from the other two. The best of the four baselines, Ridge,
-reaches \res{trip}{Ridge} on the trip-grouped split and \res{time}{Ridge}
-on the time split.
+random split to \res{trip}{XGBoost} on the trip-grouped split,
+\res{date}{XGBoost} on the date-grouped split and \res{time}{XGBoost} on the
+time split, and LightGBM from \res{random}{LightGBM} to
+\res{trip}{LightGBM}, \res{date}{LightGBM} and \res{time}{LightGBM}. TabPFN
+on 10{,}000 rows is level across the four: \res{random}{TabPFN},
+\res{trip}{TabPFN}, \res{date}{TabPFN} and \res{time}{TabPFN}. The splits
+are not all scored on the same test events. The best of the four baselines,
+Ridge, reaches \res{trip}{Ridge} on the trip-grouped split and
+\res{time}{Ridge} on the time split.
 
 \paragraph{No model is reliably useful on unseen routes.}
 On this split $R^2$ is measured against the mean delay of the held-out events
@@ -275,20 +280,25 @@ TabPFN on small datasets~\cite{hollmann2025tabpfn}; we do not present it as
 new. With 10{,}000 rows TabPFN is already at least as good as the boosted
 models with all rows, \TimeRowRatio{} times more.
 
-\paragraph{The trip-grouped split shows the same order and a larger gap.}
+\paragraph{With all rows, TabPFN gains most where dates are shared.}
 On the trip-grouped split TabPFN leads at 10{,}000 rows
 (\rowres{trip10k}{TabPFN} against \rowres{trip10k}{XGBoost} and
-\rowres{trip10k}{LightGBM}) and, on \rowruns{tripall}{TabPFN} seeds, with
-all rows (\rowres{tripall}{TabPFN} against \rowres{tripall}{XGBoost} and
-\rowres{tripall}{LightGBM}). The trip-grouped split shares calendar dates
-between training and test: every test event has events of the same date in
-training. \todo{Add the date-grouped result once TabPFN on all rows has
-been run.} In
-Table~\ref{tab:splits} the boosted models are
-ahead of TabPFN on this split only because TabPFN is restricted to 10{,}000
-rows there. With all rows TabPFN, too, scores lower on the time split than on
-the trip-grouped split, so the evaluation ladder applies to it as well once
-it sees the full data.
+\rowres{trip10k}{LightGBM}) and by much more with all rows
+(\rowres{tripall}{TabPFN} against \rowres{tripall}{XGBoost} and
+\rowres{tripall}{LightGBM}). Going from 10{,}000 to all rows raises its
+$R^2$ by \rowgain{trip}{TabPFN} on the trip-grouped split, but only by
+\rowgain{date}{TabPFN} on the date-grouped split (to
+\rowres{dateall}{TabPFN}) and \rowgain{time}{TabPFN} on the time split. The
+trip-grouped split leaves events of the same date as each test event in
+training, and the date-grouped split removes exactly that; the likely reason
+for the large trip-grouped gain is therefore that TabPFN, given all rows,
+exploits same-day events. We did not test this more directly. On the
+date-grouped split TabPFN with all rows is still ahead of the boosted models
+(\rowres{dateall}{XGBoost} and \rowres{dateall}{LightGBM}). In
+Table~\ref{tab:splits} the boosted models are ahead of TabPFN on the
+trip-grouped and date-grouped splits only because TabPFN is restricted to
+10{,}000 rows there. With all rows the evaluation ladder applies to TabPFN
+as well.
 
 \paragraph{The cost is prediction time.}
 With all training rows, TabPFN took \rowpred{timeall}{TabPFN}~s (about six
@@ -406,7 +416,7 @@ natural next steps.
 Code and results:
 \url{https://github.com/omarmehraby/sydney-ferry-delay-regression}. TabPFN:
 hosted API, tabpfn-client 0.4.1, default model (\ServedModel{}), all runs on
-9 October 2026.
+9 and 10 October 2026.
 
 \subsubsection{\discintname} The authors have no competing interests to
 declare that are relevant to the content of this article.
