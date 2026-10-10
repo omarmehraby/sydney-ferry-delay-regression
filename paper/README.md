@@ -3,6 +3,12 @@
 Springer LNCS format. `llncs.cls` and `splncs04.bst` are Springer's own files
 (version 2.26, from CTAN) and must not be edited.
 
+`splncs04_unsrt.bst` is the style the paper uses. It is `splncs04.bst` with the
+single `SORT` command removed, so that references are numbered in order of
+citation instead of alphabetically; nothing else differs apart from a first-line
+comment saying so. To recreate it, copy `splncs04.bst` and delete the line that
+reads `SORT`.
+
 ## Build
 
 ```bash
@@ -35,6 +41,7 @@ and change the `\includegraphics` path in `main.tex` to match.
 |---|---|
 | `main.tex` | The paper |
 | `references.bib` | Verified references only |
+| `splncs04_unsrt.bst` | Springer's bibliography style without sorting (citation order) |
 | `generated/numbers.tex` | Macros for numbers quoted in the text |
 | `generated/tab_routes.tex` | Events, trips and stops per route |
 | `generated/tab_splits.tex`, `tab_splits_rmse.tex` | R² and RMSE by model and split |
