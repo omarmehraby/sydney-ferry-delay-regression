@@ -19,3 +19,8 @@ venv/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Upload bundles for Overleaf (regenerate from the folders when needed)
+paper.zip
+figures.zip
+results.zip
